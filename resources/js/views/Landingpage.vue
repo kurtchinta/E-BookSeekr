@@ -48,7 +48,10 @@
             <div class="container mx-auto px-4">
               <div class="flex flex-col md:flex-row items-center justify-between">
                 <div class="md:w-1/2 mb-8 md:mb-0">
+
+                        <!--this can be fix-->
                         <!-- Container for Lottie animation -->
+
                  <div id="lottie-container" class="lottie-size"></div>
                 </div>
                 <div class="md:w-1/2 md:pl-12">
@@ -66,7 +69,7 @@
               </div>
             </div>
           </section>
-    
+          
           <section id="features" class="py-16 bg-gray-100 dark:bg-gray-900">
             <div class="container mx-auto px-4">
               <h2 class="text-3xl font-bold mb-12 text-center text-gray-800 dark:text-white animate-fade-in">Unleash the Power of E-BookSeekr</h2>
@@ -233,7 +236,10 @@
       </div>
     </div>
 
-    <!--loader need to be fix-->
+
+    <!--this is for future purposes!-->
+    <!--loader need to be fix since this is static.-->
+    <!--ALREADY IMPORTED!-->
     
     <!-- <l-reuleaux
       size="37"
@@ -243,6 +249,7 @@
       speed="1.2" 
       color="black" 
     ></l-reuleaux> -->
+
 
   </template>
   
