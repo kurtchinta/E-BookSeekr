@@ -1,213 +1,274 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-gray-900 dark:to-indigo-900">
-    <header class="bg-white dark:bg-gray-800 shadow-md">
-      <div class="container mx-auto px-4 py-4">
-        <div class="flex justify-between items-center">
-          <router-link to="/" class="flex items-center space-x-2">
-            <div class="relative">
-              <BookOpenIcon class="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
-              <div class="absolute -top-1 -right-1 h-3 w-3 bg-purple-500 rounded-full animate-pulse"></div>
-            </div>
-            <span class="text-2xl font-bold text-gray-800 dark:text-white">E-LibraryHub</span>
-          </router-link>
-          <div class="hidden md:flex items-center space-x-6">
-            <nav>
-              <ul class="flex space-x-6">
-                <li><router-link to="/" class="text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 transition-colors">Home</router-link></li>
-                <li><router-link to="/explore" class="text-indigo-600 dark:text-indigo-400 font-semibold">Explore</router-link></li>
-                <li><router-link to="/community" class="text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 transition-colors">Community</router-link></li>
-                <li><router-link to="/about" class="text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 transition-colors">About</router-link></li>
-              </ul>
-            </nav>
-            <button @click="toggleDarkMode" class="text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 transition-colors">
-              <SunIcon v-if="isDarkMode" class="h-5 w-5" />
-              <MoonIcon v-else class="h-5 w-5" />
-              <span class="sr-only">Toggle Dark Mode</span>
-            </button>
-            <button v-if="isLoggedIn" class="text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 transition-colors">
-              <UserIcon class="h-5 w-5" />
-              <span class="sr-only">Profile</span>
-            </button>
+  <div :class="{ 'dark': isDarkMode }" class="min-h-screen">
+    <div class="bg-gradient-to-br from-sepia-100 to-amber-100 dark:from-gray-900 dark:to-amber-900 transition-colors duration-300">
+      <header class="bg-sepia-200 bg-opacity-70 dark:bg-gray-800 dark:bg-opacity-70 shadow-md backdrop-filter backdrop-blur-md transition-colors sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <BookOpen class="h-8 w-8 text-amber-600 dark:text-amber-400 animate-float" />
+            <span class="text-2xl font-bold text-gray-800 dark:text-white animate-fade-in">E-BookSeekr</span>
           </div>
-          <div class="md:hidden">
-            <button @click="toggleMobileMenu" class="text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 transition-colors">
-              <MenuIcon v-if="!isMobileMenuOpen" class="h-6 w-6" />
-              <XIcon v-else class="h-6 w-6" />
+          <nav class="hidden md:flex items-center space-x-6">
+            <a
+              v-for="(link, index) in navLinks"
+              :key="link.href"
+              :href="link.href"
+              :class="['text-gray-600 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors', { 'font-bold': link.text === 'Explore' }]"
+              @click="setActiveLink(index)"
+            >
+              <span class="animate-slide-in" :style="{ animationDelay: `${index * 0.1}s` }">{{ link.text }}</span>
+            </a>
+            <button @click="toggleDarkMode" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200">
+              <Sun v-if="isDarkMode" class="h-6 w-6 text-gray-400" />
+              <Moon v-else class="h-6 w-6 text-gray-600" />
             </button>
-          </div>
-        </div>
-        <div v-if="isMobileMenuOpen" class="md:hidden mt-4">
-          <nav>
-            <ul class="space-y-2">
-              <li><router-link to="/" class="block text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 transition-colors">Home</router-link></li>
-              <li><router-link to="/explore" class="block text-indigo-600 dark:text-indigo-400 font-semibold">Explore</router-link></li>
-              <li><router-link to="/community" class="block text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 transition-colors">Community</router-link></li>
-              <li><router-link to="#" class="block text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 transition-colors">About</router-link></li>
-            </ul>
           </nav>
-          <div class="mt-4 flex items-center justify-between">
-            <button @click="toggleDarkMode" class="text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 transition-colors">
-              <SunIcon v-if="isDarkMode" class="h-5 w-5" />
-              <MoonIcon v-else class="h-5 w-5" />
-              <span class="ml-2">{{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}</span>
+          <div class="md:hidden relative">
+            <button @click="toggleMobileMenu" class="text-gray-600 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 p-2">
+              <Menu class="h-6 w-6" />
             </button>
-            <button v-if="isLoggedIn" class="text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 transition-colors">
-              <UserIcon class="h-5 w-5" />
-              <span class="ml-2">Profile</span>
-            </button>
+            <transition name="slide-fade">
+              <div 
+                v-if="isMobileMenuOpen" 
+                class="absolute top-full right-0 w-48 bg-white dark:bg-gray-800 shadow-lg rounded-bl-lg py-2 mt-2 z-50"
+              >
+                <button 
+                  @click="toggleDarkMode" 
+                  class="w-full text-left px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-amber-100 dark:hover:bg-gray-700 flex items-center"
+                >
+                  <Sun v-if="isDarkMode" class="h-5 w-5 mr-2" />
+                  <Moon v-else class="h-5 w-5 mr-2" />
+                  {{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}
+                </button>
+                <a 
+                  v-for="link in mobileNavLinks" 
+                  :key="link.href" 
+                  :href="link.href" 
+                  class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-amber-100 dark:hover:bg-gray-700 flex items-center"
+                >
+                  <component :is="link.icon" class="h-5 w-5 mr-2" />
+                  {{ link.text }}
+                </a>
+              </div>
+            </transition>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
 
-    <main class="container mx-auto px-4 py-8">
-      <h1 class="text-4xl font-bold mb-8 text-center text-gray-800 dark:text-white">Read New Books</h1>
+      <main class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold mb-8 text-gray-900 dark:text-white text-center">Explore E-Books</h1>
 
-      <div class="mb-8 max-w-md mx-auto">
-        <div class="relative">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search for books, authors, or genres..."
-            class="w-full px-4 py-2 pl-10 rounded-full border-2 border-indigo-300 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-          />
-          <SearchIcon class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+        <form @submit.prevent="handleSearch" class="max-w-3xl mx-auto">
+            <div class="flex flex-col md:flex-row gap-4 mb-4">
+              <div class="relative flex-grow">
+                <input
+                  v-model="searchQuery"
+                  type="text"
+                  placeholder="Search by title, author, or genre"
+                  class="w-full px-4 py-2 rounded-full border-2 border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 dark:bg-gray-800 dark:text-white pr-10"
+                />
+                <button
+                  v-if="searchQuery"
+                  @click="clearSearch"
+                  class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  <X class="h-5 w-5" />
+                </button>
+              </div>
+              <select
+              v-model="searchType"
+              class="px-4 py-2 rounded-full border-2 border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 dark:bg-gray-800 dark:text-white"
+            >
+              <option value="all">All</option>
+              <option value="title">Title</option>
+              <option value="author">Author</option>
+              <option value="genre">Genre</option>
+            </select>
+              <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-full transition duration-300 ease-in-out">
+                <Search class="h-6 w-6 inline-block mr-2" />
+                Search
+              </button>
+            </div>
+          </form>
+
+          <div class="mb-8 text-center mt-6">
+  <h2 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">Popular Genres</h2>
+  <div class="flex flex-wrap gap-4 justify-center">
+    <button
+      v-for="genre in genres"
+      :key="genre"
+      @click="selectGenre(genre)"
+      :class="[ 
+        'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-300 text-center',
+        selectedGenre === genre
+          ? 'bg-amber-600 text-white'
+          : 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300 hover:bg-amber-600 hover:text-white'
+      ]"
+    >
+      {{ genre }}
+    </button>
+  </div>
+</div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          <div v-for="book in displayedBooks" :key="book.id" class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:scale-105">
+            <div class="relative">
+              <a :href="`https://example.com/book/${book.id}`" class="block h-full">
+                <img :src="book.cover" :alt="book.title" class="w-full h-128 object-cover" />
+                <div class="p-4">
+                  <h3 class="text-lg font-semibold mb-2 text-gray-800 dark:text-white">{{ book.title }}</h3>
+                  <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">{{ book.author }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ book.genre }}</p>
+                  <div class="flex justify-between items-center">
+                    <span class="text-amber-600 dark:text-amber-400 font-bold">{{ book.price }}</span>
+                    <span class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-full text-sm transition duration-300 ease-in-out">
+                      {{ book.isFree ? 'Read Free' : 'Purchase' }}
+                    </span>
+                  </div>
+                </div>
+              </a>
+              <button 
+                @click.stop="toggleFavorite(book)" 
+                class="absolute top-2 right-2 text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 bg-white dark:bg-gray-800 rounded-full p-2 shadow-md"
+              >
+                <Heart :class="{ 'fill-current text-amber-500': book.isFavorite }" class="h-6 w-6" />
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <section class="mb-12">
-        <h2 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">Trending Categories</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          <button
-            v-for="category in trendingCategories"
-            :key="category.name"
-            class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center justify-center space-y-2"
-          >
-            <component :is="category.icon" class="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ category.name }}</span>
+        <div v-if="displayedBooks.length < filteredBooks.length" class="mt-8 text-center">
+          <button @click="loadMore" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out">
+            Load More
           </button>
         </div>
-      </section>
+      </main>
 
-      <section class="mb-12">
-        <h2 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">Trending Now</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          <div
-            v-for="book in trendingBooks"
-            :key="book.id"
-            class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
-          >
-            <img :src="book.cover" :alt="book.title" class="w-full h-48 object-cover" />
-            <div class="p-4">
-              <h3 class="font-bold text-lg mb-2 text-gray-800 dark:text-white">{{ book.title }}</h3>
-              <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">by {{ book.author }}</p>
-              <div class="flex justify-between items-center">
-                <span class="text-sm text-gray-500 dark:text-gray-400">{{ book.genre }}</span>
-                <span class="flex items-center text-yellow-500">
-                  <StarIcon class="h-4 w-4 mr-1" />
-                  {{ book.rating }}
-                </span>
-              </div>
+      <footer class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 py-12">
+        <div class="container mx-auto px-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">About Us</h3>
+              <p class="mb-4">E-BookSeekr was built with a passion for making books accessible to everyone. Whether you're a casual reader or a bookworm, we bring the best e-books to you, anytime, anywhere.</p>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Quick Links</h3>
+              <ul class="space-y-2">
+                <li><a href="#" class="hover:text-amber-600 dark:hover:text-amber-400">Privacy Policy</a></li>
+                <li><a href="#" class="hover:text-amber-600 dark:hover:text-amber-400">Terms of Service</a></li>
+                <li><a href="#" class="hover:text-amber-600 dark:hover:text-amber-400">FAQ</a></li>
+                <li><a href="#" class="hover:text-amber-600 dark:hover:text-amber-400">Contact Us</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Stay Connected</h3>
+              <p class="mb-4">Join our newsletter for the latest releases and reading tips.</p>
+              <form @submit.prevent="subscribeNewsletter" class="flex">
+                <input
+                  v-model="newsletterEmail"
+                  type="email"
+                  placeholder="Your email"
+                  class="flex-grow px-4 py-2 rounded-l-full border-2 border-r-0 border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 dark:bg-gray-700 dark:text-white"
+                />
+                <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-r-full transition duration-300 ease-in-out">
+                  Subscribe
+                </button>
+              </form>
             </div>
           </div>
-        </div>
-      </section>
-
-      <section class="mb-12">
-        <h2 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">Personalized for You</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          <div
-            v-for="book in personalizedBooks"
-            :key="book.id"
-            class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
-          >
-            <img :src="book.cover" :alt="book.title" class="w-full h-48 object-cover" />
-            <div class="p-4">
-              <h3 class="font-bold text-lg mb-2 text-gray-800 dark:text-white">{{ book.title }}</h3>
-              <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">by {{ book.author }}</p>
-              <div class="flex justify-between items-center mb-2">
-                <span class="text-sm text-gray-500 dark:text-gray-400">{{ book.genre }}</span>
-                <span class="flex items-center text-yellow-500">
-                  <StarIcon class="h-4 w-4 mr-1" />
-                  {{ book.rating }}
-                </span>
-              </div>
-              <p class="text-sm text-gray-600 dark:text-gray-300">{{ book.recommendation }}</p>
+          <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700 text-center">
+            <div class="flex justify-center space-x-4 mb-4">
+              <a href="#" class="text-gray-400 hover:text-amber-600 dark:hover:text-amber-400">
+                <Facebook class="h-6 w-6" />
+              </a>
+              <a href="#" class="text-gray-400 hover:text-amber-600 dark:hover:text-amber-400">
+                <Instagram class="h-6 w-6" />
+              </a>
             </div>
+            <p class="mb-10">&copy; {{ new Date().getFullYear() }} E-BookSeekr. All rights reserved.</p>
           </div>
         </div>
-      </section>
+      </footer>
+    </div>
 
-      <section class="mb-12">
-        <h2 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">Discover New Authors</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-          <div
-            v-for="author in newAuthors"
-            :key="author.id"
-            class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 text-center"
-          >
-            <img :src="author.photo" :alt="author.name" class="w-24 h-24 mx-auto mt-4 rounded-full object-cover" />
-            <div class="p-4">
-              <h3 class="font-semibold text-gray-800 dark:text-white">{{ author.name }}</h3>
-              <p class="text-sm text-gray-600 dark:text-gray-300">{{ author.genre }}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="bg-gray-100 dark:bg-gray-800 mt-16">
-      <div class="container mx-auto px-4 py-8">
-        <div class="text-center text-sm text-gray-600 dark:text-gray-300">
-          <p>&copy; {{ currentYear }} E-Book Oasis. All rights reserved.</p>
-        </div>
+    <transition name="slide-up">
+      <div v-if="showFavoriteAlert" class="fixed bottom-4 right-4 bg-amber-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center">
+        <Heart class="h-6 w-6 mr-2 fill-current" />
+        <span>{{ favoriteAlertMessage }}</span>
       </div>
-    </footer>
+    </transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { BookOpenIcon, SearchIcon, UserIcon, StarIcon, SunIcon, MoonIcon, BookIcon, HeartIcon, TrendingUpIcon, CoffeeIcon, RocketIcon, BrainIcon, MenuIcon, XIcon } from 'lucide-vue-next'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { BookOpen, Search, Sun, Moon, Facebook, Instagram, Heart, Menu, Home, Compass, Info, User, X } from 'lucide-vue-next'
 
-const searchQuery = ref('')
 const isDarkMode = ref(false)
-const isLoggedIn = ref(false)
 const isMobileMenuOpen = ref(false)
+const activeLink = ref(1) // Set to 1 for "Explore" page
+const selectedGenre = ref('All')
+const searchQuery = ref('')
+const searchType = ref('all')
+const priceFilter = ref('all')
+const currentPage = ref(1)
+const showFavoriteAlert = ref(false)
+const favoriteAlertMessage =   ref('')
+const newsletterEmail = ref('')
 
-const currentYear = computed(() => new Date().getFullYear())
+const booksPerPage = 8
 
-const trendingCategories = [
-  { name: 'Fiction', icon: BookIcon },
-  { name: 'Romance', icon: HeartIcon },
-  { name: 'Thriller', icon: TrendingUpIcon },
-  { name: 'Self-Help', icon: CoffeeIcon },
-  { name: 'Sci-Fi', icon: RocketIcon },
-  { name: 'Non-Fiction', icon: BrainIcon },
+const navLinks = [
+  { href: '/home', text: 'Home', icon: Home },
+  { href: '/explore', text: 'Explore', icon: Compass },
+  { href: '/favorites', text: 'Favorites', icon: Heart },
+  { href: '/profile', text: 'Profile', icon: User },
+  { href: '/about', text: 'About', icon: Info },
 ]
 
-const trendingBooks = [
-  { id: 1, title: "The Midnight Library", author: "Matt Haig", genre: "Fiction", rating: 4.2, cover: "/placeholder.svg?height=192&width=128&text=The Midnight Library" },
-  { id: 2, title: "Atomic Habits", author: "James Clear", genre: "Self-Help", rating: 4.8, cover: "/placeholder.svg?height=192&width=128&text=Atomic Habits" },
-  { id: 3, title: "The Silent Patient", author: "Alex Michaelides", genre: "Thriller", rating: 4.5, cover: "/placeholder.svg?height=192&width=128&text=The Silent Patient" },
-  { id: 4, title: "Project Hail Mary", author: "Andy Weir", genre: "Sci-Fi", rating: 4.7, cover: "/placeholder.svg?height=192&width=128&text=Project Hail Mary" },
+const mobileNavLinks = [
+  { href: '/profile', text: 'Profile', icon: User },
+  { href: '/home', text: 'Home', icon: Home },
+  { href: '/explore', text: 'Explore', icon: Compass },
+  { href: '/favorites', text: 'Favorites', icon: Heart },
+  { href: '/about', text: 'About', icon: Info },
 ]
 
-const personalizedBooks = [
-  { id: 1, title: "Dune", author: "Frank Herbert", genre: "Sci-Fi", rating: 4.6, cover: "/placeholder.svg?height=192&width=128&text=Dune", recommendation: "Based on your interest in science fiction" },
-  { id: 2, title: "The 7 Habits of Highly Effective People", author: "Stephen Covey", genre: "Self-Help", rating: 4.5, cover: "/placeholder.svg?height=192&width=128&text=7 Habits", recommendation: "You might enjoy this classic self-help book" },
-  { id: 3, title: "The Girl with the Dragon Tattoo", author: "Stieg Larsson", genre: "Mystery", rating: 4.3, cover: "/placeholder.svg?height=192&width=128&text=Dragon Tattoo", recommendation: "If you like thrilling mysteries" },
-  { id: 4, title: "The Alchemist", author: "Paulo Coelho", genre: "Fiction", rating: 4.4, cover: "/placeholder.svg?height=192&width=128&text=The Alchemist", recommendation: "A philosophical novel you might enjoy" },
-]
+const genres = ['All', 'Fiction', 'Non-Fiction', 'Mystery', 'Sci-Fi', 'Romance', 'Biography', 'Fantasy', 'Thriller', 'Horror']
 
-const newAuthors = [
-  { id: 1, name: "Jane Doe", genre: "Mystery", photo: "/placeholder.svg?height=96&width=96&text=JD" },
-  { id: 2, name: "John Smith", genre: "Sci-Fi", photo: "/placeholder.svg?height=96&width=96&text=JS" },
-  { id: 3, name: "Emily Brown", genre: "Romance", photo: "/placeholder.svg?height=96&width=96&text=EB" },
-  { id: 4, name: "Michael Lee", genre: "Thriller", photo: "/placeholder.svg?height=96&width=96&text=ML" },
-  { id: 5, name: "Sarah Johnson", genre: "Fantasy", photo: "/placeholder.svg?height=96&width=96&text=SJ" },
-  { id: 6, name: "David Wilson", genre: "Non-Fiction", photo: "/placeholder.svg?height=96&width=96&text=DW" },
-]
+const books = ref([
+  { id: 1, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', genre: 'Fiction', cover: '/gatsbyjpg (1).jpg', price: '$9.99', isFree: false, link: '/books/1', isFavorite: false },
+  { id: 2, title: '1984', author: 'George Orwell', genre: 'Sci-Fi', cover: '/george (1).jpg', price: '$8.99', isFree: false, link: '/books/2', isFavorite: false },
+  { id: 3, title: 'Pride and Prejudice', author: 'Jane Austen', genre: 'Romance', cover: '/pride.jpg', price: 'Free', isFree: true, link: '/books/3', isFavorite: false },
+  { id: 4, title: 'To Kill a Mockingbird', author: 'Harper Lee', genre: 'Fiction', cover: '/to kill (2).jpg', price: '$7.99', isFree: false, link: '/books/4', isFavorite: false },
+  { id: 5, title: 'The Catcher in the Rye', author: 'J.D. Salinger', genre: 'Fiction', cover: '/catch.jpg', price: '$6.99', isFree: false, link: '/books/5', isFavorite: false },
+  { id: 6, title: 'The Hobbit', author: 'J.R.R. Tolkien', genre: 'Fantasy', cover: '/hobbit.jpg', price: '$10.99', isFree: false, link: '/books/6', isFavorite: false },
+  { id: 7, title: 'The Da Vinci Code', author: 'Dan Brown', genre: 'Mystery', cover: '/vinci.jpg', price: '$9.99', isFree: false, link: '/books/7', isFavorite: false },
+  { id: 8, title: 'The Alchemist', author: 'Paulo Coelho', genre: 'Fiction', cover: '/alchemist.jpg', price: '$8.99', isFree: false, link: '/books/8', isFavorite: false },
+  { id: 9, title: 'Sapiens: A Brief History of Humankind', author: 'Yuval Noah Harari', genre: 'Non-Fiction', cover: '/sapiens.jpg', price: '$12.99', isFree: false, link: '/books/9', isFavorite: false },
+  { id: 10, title: 'The Diary of a Young Girl', author: 'Anne Frank', genre: 'Biography', cover: '/anne.jpg', price: '$6.99', isFree: false, link: '/books/10', isFavorite: false },
+  { id: 11, title: 'Gone Girl', author: 'Gillian Flynn', genre: 'Thriller', cover: '/gone.jpg', price: '$10.99', isFree: false, link: '/books/11', isFavorite: false },
+  { id: 12, title: 'The Shining', author: 'Stephen King', genre: 'Horror', cover: '/shining.jpg', price: '$9.99', isFree: false, link: '/books/12', isFavorite: false },
+]);
+
+
+const filteredBooks = computed(() => {
+  return books.value.filter(book => {
+    const genreMatch = selectedGenre.value === 'All' || book.genre === selectedGenre.value
+    const searchMatch = searchQuery.value === '' || 
+      (searchType.value === 'all' && (book.title.toLowerCase().includes(searchQuery.value.toLowerCase()) || book.author.toLowerCase().includes(searchQuery.value.toLowerCase()))) ||
+      (searchType.value === 'title' && book.title.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+      (searchType.value === 'author' && book.author.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+      (searchType.value === 'genre' && book.genre.toLowerCase().includes(searchQuery.value.toLowerCase()))
+    const priceMatch = priceFilter.value === 'all' || 
+      (priceFilter.value === 'free' && book.isFree) ||
+      (priceFilter.value === 'paid' && !book.isFree)
+    return genreMatch && searchMatch && priceMatch
+  })
+})
+
+const displayedBooks = computed(() => {
+  return filteredBooks.value.slice(0, currentPage.value * booksPerPage)
+})
 
 const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value
@@ -217,8 +278,163 @@ const toggleDarkMode = () => {
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
 }
+
+const setActiveLink = (index) => {
+  activeLink.value = index
+}
+
+const selectGenre = (genre) => {
+  selectedGenre.value = genre
+  currentPage.value = 1
+}
+
+const loadMore = () => {
+  currentPage.value++
+}
+
+const toggleFavorite = (book) => {
+  book.isFavorite = !book.isFavorite
+  if (book.isFavorite) {
+    addToFavorites(book)
+    favoriteAlertMessage.value = `${book.title} added to favorites!`
+  } else {
+    removeFromFavorites(book)
+    favoriteAlertMessage.value = `${book.title} removed from favorites!`
+  }
+  showFavoriteAlert.value = true
+  setTimeout(() => {
+    showFavoriteAlert.value = false
+  }, 3000)
+}
+
+const addToFavorites = (book) => {
+  const favorites = JSON.parse(localStorage.getItem('favoriteBooks') || '[]')
+  if (!favorites.some(favBook => favBook.id === book.id)) {
+    favorites.push(book)
+    localStorage.setItem('favoriteBooks', JSON.stringify(favorites))
+  }
+}
+
+const removeFromFavorites = (book) => {
+  const favorites = JSON.parse(localStorage.getItem('favoriteBooks') || '[]')
+  const updatedFavorites = favorites.filter(favBook => favBook.id !== book.id)
+  localStorage.setItem('favoriteBooks', JSON.stringify(updatedFavorites))
+}
+
+const handleSearch = () => {
+  currentPage.value = 1
+  // Additional search logic can be added here if needed
+}
+
+const clearSearch = () => {
+  searchQuery.value = ''
+  currentPage.value = 1
+}
+
+const handlePriceFilterChange = () => {
+  currentPage.value = 1
+}
+
+const subscribeNewsletter = () => {
+  console.log('Subscribing email:', newsletterEmail.value)
+  // Implement newsletter subscription logic here
+  newsletterEmail.value = ''
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', () => {
+    if (isMobileMenuOpen.value) {
+      isMobileMenuOpen.value = false
+    }
+  })
+  
+  // Load favorite books from localStorage
+  const storedFavorites = JSON.parse(localStorage.getItem('favoriteBooks') || '[]')
+  books.value.forEach(book => {
+    book.isFavorite = storedFavorites.some(favBook => favBook.id === book.id)
+  })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', () => {})
+})
 </script>
 
-<style scoped>
-/* Add any component-specific styles here */
+<style>
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-up-enter-from,
+.slide-up-leave-to {
+  transform: translateY(20px);
+  opacity: 0;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in {
+  from { 
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out;
+}
+
+.animate-slide-in {
+  animation: slide-in 0.5s ease-out;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu {
+    position: fixed;
+    top: 60px;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 50;
+  }
+
+  .mobile-menu > div {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 250px;
+    height: 100%;
+    background-color: white;
+    overflow-y: auto;
+  }
+}
 </style>

@@ -9,5 +9,8 @@
    };
    </script>
    <style scoped>
+     html{
+    overflow-x: hidden;
+  }
    /* Global styles for App */
 </style>

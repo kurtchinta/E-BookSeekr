@@ -1,17 +1,13 @@
-import './bootstrap';
-import '../css/app.css';
 import { createApp } from 'vue';
 import App from './App.vue';
-import router from './router';
-createApp(App).use(router).mount('#app');
+import router from './router'; // Import your router
 
 const app = createApp(App);
 
-router.beforeEach((to, from, next) => {
-  // Set the document title to the meta title or fall back to default
-  document.title = to.meta.title || 'E-LibraryHub';
-  next();
+// Set document title based on route meta
+router.beforeEach((to) => {
+  document.title = to.meta.title || 'E-LibraryHub'; // Fallback to default title
 });
 
-app.use(router);
-app.mount('#app');
+app.use(router); // Use the router
+app.mount('#app'); // Mount the app to the DOM
