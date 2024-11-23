@@ -1,5 +1,14 @@
 <template>
-    <div :class="{ 'dark': isDarkMode }" class="min-h-screen flex flex-col bg-gradient-to-br from-sepia-100 to-amber-100 dark:from-gray-900 dark:to-amber-900 transition-colors duration-300">
+  <div :class="{ 'dark': isDarkMode }" class="min-h-screen flex flex-col" @click="handleOutsideClick" @scroll="handleScroll">
+    <!-- Loader component -->
+    <div v-if="isLoading" class="fixed inset-0 flex items-center justify-center z-50 bg-gradient-to-br from-sepia-100 to-amber-100 dark:from-gray-900 dark:to-amber-900">
+      <div class="text-center">
+        <!-- Loader animation -->
+        <div class="inline-block animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-amber-600 dark:border-amber-400"></div>
+        <p class="mt-4 text-lg font-semibold text-gray-800 dark:text-white">Loading...</p>
+      </div>
+    </div>
+    <div v-else class="bg-gradient-to-br from-sepia-100 to-amber-100 dark:from-gray-900 dark:to-amber-900 transition-colors duration-300 flex-grow">
       <header class="bg-sepia-200 bg-opacity-70 dark:bg-gray-800 dark:bg-opacity-70 shadow-md backdrop-filter backdrop-blur-md transition-colors sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex items-center justify-between">
           <div class="flex items-center space-x-2">
@@ -21,7 +30,7 @@
             </button>
           </nav>
           <div class="md:hidden relative">
-            <button @click="toggleMobileMenu" class="text-gray-600 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 p-2">
+            <button @click.stop="toggleMobileMenu" class="text-gray-600 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 p-2">
               <Menu class="h-6 w-6" />
             </button>
             <transition name="slide-fade">
@@ -51,12 +60,17 @@
           </div>
         </div>
       </header>
-  
-      <main class="container mx-auto px-4 py-8 flex-grow">
-        <h1 class="text-4xl font-bold mb-8 text-gray-900 dark:text-white">Your Favorite Books</h1>
-  
+
+      <main class="container mx-auto px-4 py-8 mt-10 mb-24 md:mb-16">
+        <h1 class="text-5xl md:text-6xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-teal-600 dark:from-amber-400 dark:to-teal-400 animate-text-shimmer text-center">
+          Your Favorite Books
+        </h1>
+        <p class="text-xl mb-8 text-gray-600 dark:text-gray-300 max-w-2xl mx-auto text-center animate-fade-in">
+          Manage and explore your personal collection of favorite e-books.
+        </p>
+
         <div class="mb-8">
-          <div class="flex flex-wrap items-center gap-4">
+          <div class="flex flex-wrap items-center gap-4 justify-center">
             <div class="flex items-center space-x-2">
               <label for="sort" class="text-gray-700 dark:text-gray-300">Sort by:</label>
               <select
@@ -83,7 +97,7 @@
             </div>
           </div>
         </div>
-  
+
         <transition-group name="book-list" tag="div" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
           <div v-for="book in filteredFavorites" :key="book.id" class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:scale-105 relative">
             <a :href="book.link" target="_blank" rel="noopener noreferrer">
@@ -107,7 +121,7 @@
             </button>
           </div>
         </transition-group>
-  
+
         <div v-if="filteredFavorites.length === 0" class="text-center py-12">
           <BookOpen class="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h2 class="text-2xl font-bold text-gray-700 dark:text-gray-300 mb-2">No favorites yet</h2>
@@ -116,13 +130,13 @@
             Explore Books
           </a>
         </div>
-  
+
         <section v-if="recommendedBooks.length > 0" class="mt-16">
           <h2 class="text-3xl font-bold mb-8 text-gray-800 dark:text-white">Recommended for You</h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
             <div v-for="book in recommendedBooks" :key="book.id" class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:scale-105 relative">
               <a :href="book.link" target="_blank" rel="noopener noreferrer">
-                <img :src="book.cover" :alt="book.title" class="w-full h-128 object-cover" />
+                <img :src="book.cover" :alt="book.title" class="w-full h-64 object-cover" />
               </a>
               <div class="p-4">
                 <h3 class="text-lg font-semibold mb-2 text-gray-800 dark:text-white">{{ book.title }}</h3>
@@ -144,7 +158,7 @@
           </div>
         </section>
       </main>
-  
+
       <footer class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 py-12">
         <div class="container mx-auto px-4">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -191,159 +205,273 @@
         </div>
       </footer>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, computed, onMounted, watch } from 'vue';
-  import { Moon, Sun, Trash2, Heart, Menu, BookOpen, Home, Compass, Info, User, Facebook, Instagram } from 'lucide-vue-next';
-  
-  const isDarkMode = ref(false);
-  const isMobileMenuOpen = ref(false);
-  const sortBy = ref('title');
-  const filterText = ref('');
-  const newsletterEmail = ref('');
-  
-  const navLinks = [
-    { href: '/home', text: 'Home', icon: Home },
-    { href: '/explore', text: 'Explore', icon: Compass },
-    { href: '/favorites', text: 'Favorites', icon: Heart },
-    { href: '/profile', text: 'Profile', icon: User },
-    { href: '/about', text: 'About', icon: Info },
-  ];
-  
-  const mobileNavLinks = [
-    { href: '/profile', text: 'Profile', icon: User },
-    { href: '/home', text: 'Home', icon: Home },
-    { href: '/explore', text: 'Explore', icon: Compass },
-    { href: '/favorites', text: 'Favorites', icon: Heart },
-    { href: '/about', text: 'About', icon: Info },
-  ];
-  
-  const favorites = ref([]);
-  const recommendedBooks = ref([
-    { id: 5, title: 'The Catcher in the Rye', author: 'J.D. Salinger', cover:  '/catch.jpg', price: '$6.99', isFree: false, link: '#' },
-    { id: 6, title: 'The Hobbit', author: 'J.R.R. Tolkien', cover: '/hobbit.jpg', price: '$10.99', isFree: false, link: '#' },
-    { id: 7, title: 'The Da Vinci Code', author: 'Dan Brown', cover: '/vinci.jpg', price: '$9.99', isFree: false, link: '#' },
-    { id: 8, title: 'The Alchemist', author: 'Paulo Coelho', cover: '/alchemist.jpg', price: '$8.99', isFree: false, link: '#' },
-  ]);
-  
-  const toggleDarkMode = () => {
-    isDarkMode.value = !isDarkMode.value;
-    localStorage.setItem('darkMode', isDarkMode.value);
-    document.documentElement.classList.toggle('dark', isDarkMode.value);
-  };
-  
-  const toggleMobileMenu = () => {
-    isMobileMenuOpen.value = !isMobileMenuOpen.value;
-  };
-  
-  const filteredFavorites = computed(() => {
-    return favorites.value.filter(book => 
-      book.title.toLowerCase().includes(filterText.value.toLowerCase()) ||
-      book.author.toLowerCase().includes(filterText.value.toLowerCase())
-    );
+
+    <transition name="slide-up">
+      <div v-if="showFavoriteAlert" class="fixed bottom-20 right-4 bg-amber-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center">
+        <Heart class="h-6 w-6 mr-2 fill-current" />
+        <span>{{ favoriteAlertMessage }}</span>
+      </div>
+    </transition>
+
+    <!-- Bottom Navbar (Mobile Only) -->
+    <nav v-if="!isLoading" class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg">
+      <div class="flex justify-around items-center h-16">
+        <a
+          v-for="(link, index) in bottomNavLinks"
+          :key="link.href"
+          :href="link.href"
+          class="flex flex-col items-center justify-center w-full h-full bottom-nav-link"
+          :class="{ 'text-amber-600 dark:text-amber-400': link.text === 'Favorites', 'text-gray-600 dark:text-gray-400': link.text !== 'Favorites' }"
+        >
+          <component :is="link.icon" class="h-6 w-6" />
+          <span class="text-xs mt-1">{{ link.text }}</span>
+        </a>
+      </div>
+    </nav>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, watch } from 'vue';
+import { Moon, Sun, Trash2, Heart, Menu, BookOpen, Home, Compass, User, Facebook, Instagram, BookOpen as ReadingList, LogOut, Info } from 'lucide-vue-next';
+
+const isDarkMode = ref(false);
+const isMobileMenuOpen = ref(false);
+const sortBy = ref('title');
+const filterText = ref('');
+const newsletterEmail = ref('');
+const isLoading = ref(true);
+const showFavoriteAlert = ref(false);
+const favoriteAlertMessage = ref('');
+
+const navLinks = [
+  { href: '/home', text: 'Home', icon: Home },
+  { href: '/explore', text: 'Explore', icon: Compass },
+  { href: '/favorites', text: 'Favorites', icon: Heart },
+  { href: '/profile', text: 'Profile', icon: User },
+  { href: '/about', text: 'About', icon: Info },
+];
+const bottomNavLinks = [
+  { href: '/home', text: 'Home', icon: Home },
+  { href: '/explore', text: 'Explore', icon: Compass },
+  { href: '/favorites', text: 'Favorites', icon: Heart },
+  { href: '/profile', text: 'Profile', icon: User },
+];
+const mobileNavLinks = [
+  { href: '/reading-list', text: 'Reading List', icon: ReadingList },
+  { href: '/logout', text: 'Logout', icon: LogOut },
+  { href: '/about', text: 'About', icon: Info },
+];
+
+const favorites = ref([]);
+const recommendedBooks = ref([
+  { id: 5, title: 'The Catcher in the Rye', author: 'J.D. Salinger', cover: '/catch.jpg', price: '$6.99', isFree: false, link: '#' },
+  { id: 6, title: 'The Hobbit', author: 'J.R.R. Tolkien', cover: '/hobbit.jpg', price: '$10.99', isFree: false, link: '#' },
+  { id: 7, title: 'The Da Vinci Code', author: 'Dan Brown', cover: '/vinci.jpg', price: '$9.99', isFree: false, link: '#' },
+  { id: 8, title: 'The Alchemist', author: 'Paulo Coelho', cover: '/alchemist.jpg', price: '$8.99', isFree: false, link: '#' },
+]);
+
+const toggleDarkMode = () => {
+  isDarkMode.value = !isDarkMode.value;
+  localStorage.setItem('darkMode', isDarkMode.value);
+  document.documentElement.classList.toggle('dark', isDarkMode.value);
+};
+
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value;
+};
+
+const filteredFavorites = computed(() => {
+  return favorites.value.filter(book => 
+    book.title.toLowerCase().includes(filterText.value.toLowerCase()) ||
+    book.author.toLowerCase().includes(filterText.value.toLowerCase())
+  );
+});
+
+const sortFavorites = () => {
+  favorites.value.sort((a, b) => {
+    if (sortBy.value === 'title') return a.title.localeCompare(b.title);
+    if (sortBy.value === 'author') return a.author.localeCompare(b.author);
+    return new Date(b.dateAdded) - new Date(a.dateAdded);
   });
-  
-  const sortFavorites = () => {
-    favorites.value.sort((a, b) => {
-      if (sortBy.value === 'title') return a.title.localeCompare(b.title);
-      if (sortBy.value === 'author') return a.author.localeCompare(b.author);
-      return new Date(b.dateAdded) - new Date(a.dateAdded);
-    });
-  };
-  
-  const removeFromFavorites = (book) => {
-    favorites.value = favorites.value.filter(fav => fav.id !== book.id);
+};
+
+const removeFromFavorites = (book) => {
+  favorites.value = favorites.value.filter(fav => fav.id !== book.id);
+  saveFavoritesToLocalStorage();
+  showFavoriteAlert.value = true;
+  favoriteAlertMessage.value = `${book.title} removed from favorites!`;
+  setTimeout(() => {
+    showFavoriteAlert.value = false;
+  }, 3000);
+};
+
+const addToFavorites = (book) => {
+  if (!favorites.value.some(fav => fav.id === book.id)) {
+    favorites.value.push({ ...book, dateAdded: new Date() });
     saveFavoritesToLocalStorage();
-  };
-  
-  const addToFavorites = (book) => {
-    if (!favorites.value.some(fav => fav.id === book.id)) {
-      favorites.value.push({ ...book, dateAdded: new Date() });
-      saveFavoritesToLocalStorage();
-    }
-  };
-  
-  const saveFavoritesToLocalStorage = () => {
-    localStorage.setItem('favorites', JSON.stringify(favorites.value));
-  };
-  
-  const loadFavoritesFromLocalStorage = () => {
-    const storedFavorites = localStorage.getItem('favorites');
-    if (storedFavorites) {
-      favorites.value = JSON.parse(storedFavorites);
-    }
-  };
-  
-  const subscribeNewsletter = () => {
-    // Implement newsletter subscription logic here
-    console.log('Subscribing to newsletter:', newsletterEmail.value);
-    newsletterEmail.value = ''; // Clear the input after submission
-  };
-  
-  onMounted(() => {
-    isDarkMode.value = localStorage.getItem('darkMode') === 'true';
-    document.documentElement.classList.toggle('dark', isDarkMode.value);
-    loadFavoritesFromLocalStorage();
-  });
-  
-  watch(favorites, () => {
-    sortFavorites();
-  }, { deep: true });
-  
-  </script>
-  
-  <style scoped>
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
+    showFavoriteAlert.value = true;
+    favoriteAlertMessage.value = `${book.title} added to favorites!`;
+    setTimeout(() => {
+      showFavoriteAlert.value = false;
+    }, 3000);
   }
-  
-  .animate-fade-in {
-    animation: fade-in 0.5s ease-in-out forwards;
+};
+
+const saveFavoritesToLocalStorage = () => {
+  localStorage.setItem('favorites', JSON.stringify(favorites.value));
+};
+
+const loadFavoritesFromLocalStorage = () => {
+  const storedFavorites = localStorage.getItem('favorites');
+  if (storedFavorites) {
+    favorites.value = JSON.parse(storedFavorites);
   }
-  
-  .animate-slide-in {
-    animation: slide-in 0.5s ease-in-out forwards;
+};
+
+const subscribeNewsletter = () => {
+  // Implement newsletter subscription logic here
+  console.log('Subscribing to newsletter:', newsletterEmail.value);
+  newsletterEmail.value = ''; // Clear the input after submission
+};
+
+const handleOutsideClick = (event) => {
+  if (isMobileMenuOpen.value && !event.target.closest('.mobile-menu')) {
+    isMobileMenuOpen.value = false;
   }
-  
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
+};
+
+const handleScroll = () => {
+  if (isMobileMenuOpen.value) {
+    isMobileMenuOpen.value = false;
   }
+};
+
+onMounted(() => {
+  isDarkMode.value = localStorage.getItem('darkMode') === 'true';
+  document.documentElement.classList.toggle('dark', isDarkMode.value);
+  loadFavoritesFromLocalStorage();
+  window.addEventListener('scroll', handleScroll);
   
-  @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  
-  @keyframes slide-in {
-    from { 
-      transform: translateX(-20px);
-      opacity: 0;
-    }
-    to { 
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-  
-  .book-list-enter-active,
-  .book-list-leave-active {
-    transition: all 0.5s ease;
-  }
-  .book-list-enter-from,
-  .book-list-leave-to {
+  // Simulate loading time
+  setTimeout(() => {
+    isLoading.value = false;
+  }, 2000); // 2 seconds loading time, adjust as needed
+});
+
+watch(favorites, () => {
+  sortFavorites();
+}, { deep: true });
+
+</script>
+
+<style scoped>
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-up-enter-from,
+.slide-up-leave-to {
+  transform: translateY(20px);
+  opacity: 0;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in {
+  from { 
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateX(-20px);
   }
-  
-  .slide-fade-enter-active,
-  .slide-fade-leave-active {
-    transition: all 0.3s ease;
+  to { 
+    opacity: 1;
+    transform: translateX(0);
   }
-  .slide-fade-enter-from,
-  .slide-fade-leave-to {
-    transform: translateY(-10px);
-    opacity: 0;
+}
+
+@keyframes text-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out;
+}
+
+.animate-slide-in {
+  animation: slide-in 0.5s ease-out;
+}
+
+.animate-text-shimmer {
+  background-size: 200% auto;
+  animation: text-shimmer 3s linear infinite;
+}
+
+.book-list-enter-active,
+.book-list-leave-active {
+  transition: all 0.5s ease;
+}
+.book-list-enter-from,
+.book-list-leave-to {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+@media (max-width: 768px) {
+  .mobile-menu {
+    position: fixed;
+    top: 60px;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 50;
   }
-  </style>
+
+  .mobile-menu > div {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 250px;
+    height: 100%;
+    background-color: white;
+    overflow-y: auto;
+  }
+}
+
+.bottom-nav-link {
+  transition: color 0.3s ease;
+}
+
+.bottom-nav-link:hover {
+  color: #d97706; /* amber-600 */
+}
+
+.dark .bottom-nav-link:hover {
+  color: #fbbf24; /* amber-400 */
+}
+</style>

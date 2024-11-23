@@ -1,6 +1,13 @@
 <template>
   <div :class="{ 'dark': isDarkMode }" class="min-h-screen flex flex-col lg:flex-row bg-gradient-to-br from-amber-50 to-amber-100 dark:from-gray-900 dark:to-amber-900 transition-colors duration-300">
-    <!-- Left side: Book-themed animation -->
+     <!-- Loader component -->
+     <div v-if="isLoading" class="fixed inset-0 flex items-center justify-center z-50 bg-gradient-to-br from-sepia-100 to-amber-100 dark:from-gray-900 dark:to-amber-900">
+      <div class="text-center">
+        <!-- Loader animation -->
+        <div class="inline-block animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-amber-600 dark:border-amber-400"></div>
+        <p class="mt-4 text-lg font-semibold text-gray-800 dark:text-white">Loading...</p>
+      </div>
+    </div>
     <div class="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-16">
       <div class="relative w-full max-w-md aspect-square">
         <div class="absolute inset-0 bg-amber-200 dark:bg-amber-800 rounded-lg shadow-2xl transform -rotate-6 transition-all duration-300 ease-in-out"></div>
@@ -202,6 +209,17 @@ import { SunIcon, MoonIcon, BookOpen, Facebook } from 'lucide-vue-next'
 
 const activeTab = ref('signin')
 const isDarkMode = ref(false)
+const isLoading = ref(true)
+
+// Loader functionality
+onMounted(() => {
+  // Simulate loading time
+  setTimeout(() => {
+    isLoading.value = false;
+    // Load the Lottie animation after the loading is complete
+    loadLottieAnimation();
+  }, 2000); // 2 seconds loading time, adjust as needed
+});
 
 const signinForm = reactive({
   email: '',

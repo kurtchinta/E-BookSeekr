@@ -119,7 +119,7 @@
       <section class="mb-16 bg-gradient-to-r from-amber-500 to-amber-500 dark:from-amber-600 dark:to-amber-600 text-white rounded-lg shadow-lg p-8 text-center transform hover:scale-105 transition-transform duration-300">
         <h2 class="text-3xl font-semibold mb-4">Ready to Embark on Your Reading Journey?</h2>
         <p class="text-xl mb-8">Join E-BookSeekr today and unlock a world of literary wonders!</p>
-        <a href="/search" class="bg-white text-amber-600 hover:bg-gray-100 font-bold py-3 px-8 rounded-full text-lg transition duration-300 ease-in-out inline-block shadow-md hover:shadow-lg transform hover:-translate-y-1">
+        <a href="/explore" class="bg-white text-amber-600 hover:bg-gray-100 font-bold py-3 px-8 rounded-full text-lg transition duration-300 ease-in-out inline-block shadow-md hover:shadow-lg transform hover:-translate-y-1">
           Start Your Adventure
         </a>
       </section>
@@ -179,7 +179,7 @@
             </form>
           </div>
         </div>
-        <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700 text-center">
+        <div class="mt-8 mb-10 pt-8 border-t border-gray-200 dark:border-gray-700 text-center">
           <div class="flex justify-center space-x-4 mb-4">
             <a href="#" class="text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition-colors">
               <Facebook class="h-6 w-6" />

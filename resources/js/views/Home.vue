@@ -1,6 +1,14 @@
 <template>
-  <div :class="{ 'dark': isDarkMode }" class="min-h-screen" @click="handleOutsideClick" @scroll="handleScroll">
-    <div class="bg-gradient-to-br from-sepia-100 to-amber-100 dark:from-gray-900 dark:to-amber-900 transition-colors duration-300">
+  <div :class="{ 'dark': isDarkMode }" class="min-h-screen flex flex-col" @click="handleOutsideClick" @scroll="handleScroll">
+    <!-- Loader component -->
+    <div v-if="isLoading" class="fixed inset-0 flex items-center justify-center z-50 bg-gradient-to-br from-sepia-100 to-amber-100 dark:from-gray-900 dark:to-amber-900">
+      <div class="text-center">
+        <!-- Loader animation -->
+        <div class="inline-block animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-amber-600 dark:border-amber-400"></div>
+        <p class="mt-4 text-lg font-semibold text-gray-800 dark:text-white">Loading...</p>
+      </div>
+    </div>
+    <div v-else class="bg-gradient-to-br from-sepia-100 to-amber-100 dark:from-gray-900 dark:to-amber-900 transition-colors duration-300 flex-grow">
       <header class="bg-sepia-200 bg-opacity-70 dark:bg-gray-800 dark:bg-opacity-70 shadow-md backdrop-filter backdrop-blur-md transition-colors sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex items-center justify-between">
           <div class="flex items-center space-x-2">
@@ -54,7 +62,7 @@
         </div>
       </header>
 
-      <main class="container mx-auto px-4 py-8 mt-10">
+      <main class="container mx-auto px-4 py-8 mt-10 mb-24 md:mb-16">
         <section class="text-center mb-16">
           <h1 class="text-5xl md:text-6xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-teal-600 dark:from-amber-400 dark:to-teal-400 animate-text-shimmer">
             Discover Your Next Must-Read E-Book!
@@ -203,7 +211,7 @@
               </form>
             </div>
           </div>
-          <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700 text-center">
+          <div class="mt-8 pt-8 border-t border-gray-200  dark:border-gray-700 text-center">
             <div class="flex justify-center space-x-4 mb-4">
               <a href="#" class="text-gray-400 hover:text-amber-600 dark:hover:text-amber-400">
                 <Facebook class="h-6 w-6" />
@@ -219,17 +227,34 @@
     </div>
 
     <transition name="slide-up">
-      <div v-if="showFavoriteAlert" class="fixed bottom-4 right-4 bg-amber-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center">
+      <div v-if="showFavoriteAlert" class="fixed bottom-20 right-4 bg-amber-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center">
         <Heart class="h-6 w-6 mr-2 fill-current" />
         <span>{{ favoriteAlertMessage }}</span>
       </div>
     </transition>
+
+    <!-- Bottom Navbar (Mobile Only) -->
+    <nav v-if="!isLoading" class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg">
+      <div class="flex justify-around items-center h-16">
+        <a
+          v-for="(link, index) in bottomNavLinks"
+          :key="link.href"
+          :href="link.href"
+          class="flex flex-col items-center justify-center w-full h-full bottom-nav-link"
+          :class="{ 'text-amber-600 dark:text-amber-400': activeLink === index, 'text-gray-600 dark:text-gray-400': activeLink !== index }"
+          @click="setActiveLink(index)"
+        >
+          <component :is="link.icon" class="h-6 w-6" />
+          <span class="text-xs mt-1">{{ link.text }}</span>
+        </a>
+      </div>
+    </nav>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, onUnmounted, watch } from 'vue'
-import { BookOpen, Search, Sun, Moon, Facebook, Instagram, Heart, Menu, X, Home, Compass, Info, User } from 'lucide-vue-next'
+import { BookOpen, Search, Sun, Moon, Facebook, Instagram, Heart, Menu, X, Home, Compass, Info, User, LogOut } from 'lucide-vue-next'
 
 const isDarkMode = ref(false)
 const isMobileMenuOpen = ref(false)
@@ -242,6 +267,7 @@ const showFavoriteAlert = ref(false)
 const favoriteAlertMessage = ref('')
 const newsletterEmail = ref('')
 const hasSearched = ref(false)
+const isLoading = ref(true)
 
 const navLinks = [
   { href: '/home', text: 'Home', icon: Home },
@@ -250,34 +276,32 @@ const navLinks = [
   { href: '/profile', text: 'Profile', icon: User },
   { href: '/about', text: 'About', icon: Info },
 ]
-
-const mobileNavLinks = [
-  { href: '/profile', text: 'Profile', icon: User },
+const bottomNavLinks = [
   { href: '/home', text: 'Home', icon: Home },
   { href: '/explore', text: 'Explore', icon: Compass },
   { href: '/favorites', text: 'Favorites', icon: Heart },
+  { href: '/profile', text: 'Profile', icon: User },
+]
+const mobileNavLinks = [
+  { href: '/reading-list', text: 'Reading List', icon: BookOpen },
+  { href: '/logout', text: 'Logout', icon: LogOut },
   { href: '/about', text: 'About', icon: Info },
 ]
-//this in only static value
 const featuredBooks = reactive([
-  { id: 1, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald',  genre: 'Fiction',  cover: '/gatsbyjpg (1).jpg', price: '$9.99', isFree: false, link: 'https://example.com/book1', isFavorite: false },
-  { id: 2, title: '1984', author: 'George Orwell', cover: '/george (1).jpg', genre: 'Sci-Fi',price: '$8.99', isFree: false, link: 'https://example.com/book2', isFavorite: false },
+  { id: 1, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', genre: 'Fiction', cover: '/gatsbyjpg (1).jpg', price: '$9.99', isFree: false, link: 'https://example.com/book1', isFavorite: false },
+  { id: 2, title: '1984', author: 'George Orwell', cover: '/george (1).jpg', genre: 'Sci-Fi', price: '$8.99', isFree: false, link: 'https://example.com/book2', isFavorite: false },
   { id: 3, title: 'Pride and Prejudice', author: 'Jane Austen', genre: 'Romance', cover: '/pride.jpg', price: 'Free', isFree: true, link: 'https://example.com/book3', isFavorite: false },
   { id: 4, title: 'To Kill a Mockingbird', author: 'Harper Lee', genre: 'Fiction', cover: '/to kill (2).jpg', price: '$7.99', isFree: false, link: 'https://example.com/book4', isFavorite: false },
 ])
 
 const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value
+  localStorage.setItem('darkMode', JSON.stringify(isDarkMode.value))
   document.documentElement.classList.toggle('dark')
 }
 
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
-  if (isMobileMenuOpen.value) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = ''
-  }
 }
 
 const setActiveLink = (index) => {
@@ -295,7 +319,6 @@ const handleSearch = () => {
   }
   showRecentSearches.value = false
   hasSearched.value = true
-  // Implement search logic here
 }
 
 const clearSearch = () => {
@@ -346,7 +369,6 @@ const removeFromFavorites = (book) => {
 
 const subscribeNewsletter = () => {
   console.log('Subscribing email:', newsletterEmail.value)
-  // Implement newsletter subscription logic here
   newsletterEmail.value = ''
 }
 
@@ -368,17 +390,14 @@ const handleScroll = () => {
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
   
-  // Load favorite books from localStorage
   const storedFavorites = JSON.parse(localStorage.getItem('favoriteBooks') || '[]')
   featuredBooks.forEach(book => {
     book.isFavorite = storedFavorites.some(favBook => favBook.id === book.id)
   })
 
-  // Load recent searches from localStorage
   const storedSearches = JSON.parse(localStorage.getItem('recentSearches') || '[]')
   recentSearches.value = storedSearches
 
-  // Initialize dark mode from localStorage
   const storedDarkMode = localStorage.getItem('darkMode')
   if (storedDarkMode !== null) {
     isDarkMode.value = JSON.parse(storedDarkMode)
@@ -386,15 +405,19 @@ onMounted(() => {
       document.documentElement.classList.add('dark')
     }
   }
+
+  // Simulate loading time
+  setTimeout(() => {
+    isLoading.value = false
+  }, 2000) // 2 seconds loading time, adjust as needed
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
 
-// Watch for changes in isDarkMode and update localStorage
 watch(isDarkMode, (newValue) => {
-  localStorage.setItem('darkMode', newValue)
+  localStorage.setItem('darkMode', JSON.stringify(newValue))
 })
 </script>
 
@@ -485,4 +508,17 @@ watch(isDarkMode, (newValue) => {
     overflow-y: auto;
   }
 }
+
+.bottom-nav-link {
+  transition: color 0.3s ease;
+}
+
+.bottom-nav-link:hover {
+  color: #d97706; /* amber-600 */
+}
+
+.dark .bottom-nav-link:hover {
+  color: #fbbf24; /* amber-400 */
+}
 </style>
+

@@ -1,5 +1,14 @@
 <template>
-    <div :class="{ 'dark': isDarkMode }" class="min-h-screen flex flex-col bg-gradient-to-br from-sepia-100 to-amber-100 dark:from-gray-900 dark:to-amber-900 transition-colors duration-300">
+  <div :class="{ 'dark': isDarkMode }" class="min-h-screen flex flex-col" @click="handleOutsideClick">
+    <!-- Loader component -->
+    <div v-if="isLoading" class="fixed inset-0 flex items-center justify-center z-50 bg-gradient-to-br from-sepia-100 to-amber-100 dark:from-gray-900 dark:to-amber-900">
+      <div class="text-center">
+        <!-- Loader animation -->
+        <div class="inline-block animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-amber-600 dark:border-amber-400"></div>
+        <p class="mt-4 text-lg font-semibold text-gray-800 dark:text-white">Loading...</p>
+      </div>
+    </div>
+    <div v-else class="bg-gradient-to-br from-sepia-100 to-amber-100 dark:from-gray-900 dark:to-amber-900 transition-colors duration-300 flex-grow">
       <header class="bg-sepia-200 bg-opacity-70 dark:bg-gray-800 dark:bg-opacity-70 shadow-md backdrop-filter backdrop-blur-md transition-colors sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4 flex items-center justify-between">
           <div class="flex items-center space-x-2">
@@ -21,7 +30,7 @@
             </button>
           </nav>
           <div class="md:hidden relative">
-            <button @click="toggleMobileMenu" class="text-gray-600 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 p-2">
+            <button @click.stop="toggleMobileMenu" class="text-gray-600 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 p-2">
               <Menu class="h-6 w-6" />
             </button>
             <transition name="slide-fade">
@@ -51,10 +60,10 @@
           </div>
         </div>
       </header>
-  
-      <main class="container mx-auto px-4 py-8 flex-grow">
+
+      <main class="container mx-auto px-4 py-8 flex-grow pb-24 md:pb-8">
         <h1 class="text-4xl font-bold mb-8 text-gray-900 dark:text-white">Your Reading Journey</h1>
-  
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div class="md:col-span-1">
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 relative overflow-hidden">
@@ -78,7 +87,7 @@
               </div>
             </div>
           </div>
-  
+
           <div class="md:col-span-2">
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
               <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Reading Stats</h3>
@@ -107,25 +116,41 @@
             </div>
             
             <section id="reading">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-              <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Reading List</h3>
-              <ul class="space-y-4">
-                <li v-for="book in user.readingList" :key="book.id" class="flex items-center justify-between p-4 bg-gray-100 dark:bg-gray-700 rounded-lg transition-transform duration-300 hover:scale-105">
-                  <div>
-                    <h4 class="font-semibold text-gray-800 dark:text-gray-200">{{ book.title }}</h4>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ book.author }}</p>
-                  </div>
-                  <a :href="book.link" class="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300">
-                    <ExternalLink class="h-5 w-5" />
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </section>
+              <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Reading List</h3>
+                <ul class="space-y-4">
+                  <li v-for="book in user.readingList" :key="book.id" class="flex items-center justify-between p-4 bg-gray-100 dark:bg-gray-700 rounded-lg transition-transform duration-300 hover:scale-105">
+                    <div>
+                      <h4 class="font-semibold text-gray-800 dark:text-gray-200">{{ book.title }}</h4>
+                      <p class="text-sm text-gray-600 dark:text-gray-400">{{ book.author }}</p>
+                    </div>
+                    <a :href="book.link" class="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300">
+                      <ExternalLink class="h-5 w-5" />
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </section>
           </div>
         </div>
       </main>
-  
+
+      <!-- Bottom Navbar (Mobile Only) -->
+      <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg">
+        <div class="flex justify-around items-center h-16">
+          <a
+            v-for="(link, index) in bottomNavLinks"
+            :key="link.href"
+            :href="link.href"
+            class="flex flex-col items-center justify-center w-full h-full"
+            :class="{ 'text-amber-600 dark:text-amber-400': link.text === 'Profile', 'text-gray-600 dark:text-gray-400': link.text !== 'Profile' }"
+          >
+            <component :is="link.icon" class="h-6 w-6" />
+            <span class="text-xs mt-1">{{ link.text }}</span>
+          </a>
+        </div>
+      </nav>
+
       <footer class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 py-12">
         <div class="container mx-auto px-4">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -167,11 +192,11 @@
                 <Instagram class="h-6 w-6" />
               </a>
             </div>
-            <p class="mb-10">&copy; {{ new Date().getFullYear() }} E-BookSeekr. All rights reserved.</p>
+            <p class="mb-20 md:mb-0">&copy; {{ new Date().getFullYear() }} E-BookSeekr. All rights reserved.</p>
           </div>
         </div>
       </footer>
-  
+
       <!-- Edit Profile Modal -->
       <transition name="modal">
         <div v-if="isEditModalOpen" class="fixed z-50 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -221,162 +246,190 @@
         </div>
       </transition>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, computed, onMounted } from 'vue';
-  import { Moon, Sun, Menu, BookOpen, Home, Compass, Heart, User, Info, ExternalLink, Facebook, Instagram, Plus } from 'lucide-vue-next';
-  
-  const isDarkMode = ref(false);
-  const isMobileMenuOpen = ref(false);
-  const newsletterEmail = ref('');
-  const isEditModalOpen = ref(false);
-  
-  const navLinks = [
-    { href: '/home', text: 'Home', icon: Home },
-    { href: '/explore', text: 'Explore', icon: Compass },
-    { href: '/favorites', text: 'Favorites', icon: Heart },
-    { href: '/profile', text: 'Profile', icon: User },
-    { href: '/about', text: 'About', icon: Info },
-  ];
-  
-  const mobileNavLinks = [
-    { href: '/profile', text: 'Profile', icon: User },
-    { href: '/home', text: 'Home', icon: Home },
-    { href: '/explore', text: 'Explore', icon: Compass },
-    { href: '/favorites', text: 'Favorites', icon: Heart },
-    { href: '/about', text: 'About', icon: Info },
-  ];
-  
-  const generateRandomUsername = () => {
-    return 'user_' + Math.random().toString(36).substr(2, 8);
-  };
-  
-  const user = ref({
-    name: 'Kurt Reserva',
-    username: generateRandomUsername(),
-    email: 'kurtreserva18@gmail.com',
-    avatar: '/kurty.png',
-    birthdate: '2003-10-05',
-    country: 'Phillipines',
-    region: 'Caraga',
-    booksBrowsed: 129,
-    favoriteBooks: 15,
-    readingList: [
-      { id: 1, title: 'To Kill a Mockingbird', author: 'Harper Lee', link: '#' },
-      { id: 2, title: '1984', author: 'George Orwell', link: '#' },
-      { id: 3, title: 'Pride and Prejudice', author: 'Jane Austen', link: '#' },
-    ],
-  });
-  
-  const editedUser = ref({ ...user.value });
-  
-  const circumference = 2 * Math.PI * 30;
-  const dashOffset = computed(() => {
-    return circumference - (user.value.booksBrowsed / 200) * circumference;
-  });
-  
-  const favoriteDashOffset = computed(() => {
-    return circumference - (user.value.favoriteBooks / 50) * circumference;
-  });
-  
-  const toggleDarkMode = () => {
-    isDarkMode.value = !isDarkMode.value;
-    localStorage.setItem('darkMode', isDarkMode.value);
-    document.documentElement.classList.toggle('dark', isDarkMode.value);
-  };
-  
-  const toggleMobileMenu = () => {
-    isMobileMenuOpen.value = !isMobileMenuOpen.value;
-  };
-  
-  const openEditModal = () => {
-    editedUser.value = { ...user.value };
-    isEditModalOpen.value = true;
-  };
-  
-  const closeEditModal = () => {
-    isEditModalOpen.value = false;
-  };
-  
-  const saveProfile = () => {
-    user.value.username = editedUser.value.username;
-    closeEditModal();
-  };
-  
-  const handleAvatarUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        user.value.avatar = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-  
-  const subscribeNewsletter = () => {
-    console.log('Subscribing to newsletter:', newsletterEmail.value);
-    newsletterEmail.value = '';
-  };
-  
-  onMounted(() => {
-    isDarkMode.value = localStorage.getItem('darkMode') === 'true';
-    document.documentElement.classList.toggle('dark', isDarkMode.value);
-  });
-  </script>
-  
-  <style scoped>
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { Moon, Sun, Menu, BookOpen, Home, Compass, Heart, User, Info, ExternalLink, Facebook, Instagram, Plus, LogOut } from 'lucide-vue-next';
+
+const isDarkMode = ref(false);
+const isMobileMenuOpen = ref(false);
+const newsletterEmail = ref('');
+const isEditModalOpen = ref(false);
+const isLoading = ref(true);
+
+const navLinks = [
+  { href: '/home', text: 'Home', icon: Home },
+  { href: '/explore', text: 'Explore', icon: Compass },
+  { href: '/favorites', text: 'Favorites', icon: Heart },
+  { href: '/profile', text: 'Profile', icon: User },
+  { href: '/about', text: 'About', icon: Info },
+];
+
+const mobileNavLinks = [
+  { href: '/reading-list', text: 'Reading List', icon: BookOpen },
+  { href: '/logout', text: 'Logout', icon: LogOut },
+  { href: '/about', text: 'About', icon: Info },
+];
+
+const bottomNavLinks = [
+  { href: '/home', text: 'Home', icon: Home },
+  { href: '/explore', text: 'Explore', icon: Compass },
+  { href: '/favorites', text: 'Favorites', icon: Heart },
+  { href: '/profile', text: 'Profile', icon: User },
+];
+
+const generateRandomUsername = () => {
+  return 'user_' + Math.random().toString(36).substr(2, 8);
+};
+
+const user = ref({
+  name: 'Kurt Reserva',
+  username: generateRandomUsername(),
+  email: 'kurtreserva18@gmail.com',
+  avatar: '/kurty.png',
+  birthdate: '2003-10-05',
+  country: 'Phillipines',
+  region: 'Caraga',
+  booksBrowsed: 129,
+  favoriteBooks: 15,
+  readingList: [
+    { id: 1, title: 'To Kill a Mockingbird', author: 'Harper Lee', link: '#' },
+    { id: 2, title: '1984', author: 'George Orwell', link: '#' },
+    { id: 3, title: 'Pride and Prejudice', author: 'Jane Austen', link: '#' },
+  ],
+});
+
+const editedUser = ref({ ...user.value });
+
+const circumference = 2 * Math.PI * 30;
+const dashOffset = computed(() => {
+  return circumference - (user.value.booksBrowsed / 200) * circumference;
+});
+
+const favoriteDashOffset = computed(() => {
+  return circumference - (user.value.favoriteBooks / 50) * circumference;
+});
+
+const toggleDarkMode = () => {
+  isDarkMode.value = !isDarkMode.value;
+  localStorage.setItem('darkMode', isDarkMode.value);
+  document.documentElement.classList.toggle('dark', isDarkMode.value);
+};
+
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value;
+};
+
+const openEditModal = () => {
+  editedUser.value = { ...user.value };
+  isEditModalOpen.value = true;
+};
+
+const closeEditModal = () => {
+  isEditModalOpen.value = false;
+};
+
+const saveProfile = () => {
+  user.value.username = editedUser.value.username;
+  closeEditModal();
+};
+
+const handleAvatarUpload = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      user.value.avatar = e.target.result;
+    };
+    reader.readAsDataURL(file);
   }
-  
-  .animate-fade-in {
-    animation: fade-in 0.5s ease-in-out forwards;
+};
+
+const subscribeNewsletter = () => {
+  console.log('Subscribing to newsletter:', newsletterEmail.value);
+  newsletterEmail.value = '';
+};
+
+const handleOutsideClick = (event) => {
+  if (isMobileMenuOpen.value && !event.target.closest('.mobile-menu')) {
+    isMobileMenuOpen.value = false;
   }
-  
-  .animate-slide-in {
-    animation: slide-in 0.5s ease-in-out forwards;
-  }
-  
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-  }
-  
-  @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  
-  @keyframes slide-in {
-    from { 
-      transform: translateX(-20px);
-      opacity: 0;
-    }
-    to { 
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-  
-  .slide-fade-enter-active,
-  .slide-fade-leave-active {
-    transition: all 0.3s ease;
-  }
-  .slide-fade-enter-from,
-  .slide-fade-leave-to {
-    transform: translateY(-10px);
+};
+
+onMounted(() => {
+  isDarkMode.value = localStorage.getItem('darkMode') === 'true';
+  document.documentElement.classList.toggle('dark', isDarkMode.value);
+
+  // Simulate loading time
+  setTimeout(() => {
+    isLoading.value = false;
+  }, 2000); // 2 seconds loading time, adjust as needed
+});
+</script>
+
+<style scoped>
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-in-out forwards;
+}
+
+.animate-slide-in {
+  animation: slide-in 0.5s ease-in-out forwards;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in {
+  from { 
+    transform: translateX(-20px);
     opacity: 0;
   }
-  
-  .modal-enter-active,
-  .modal-leave-active {
-    transition: opacity 0.3s ease;
+  to { 
+    transform: translateX(0);
+    opacity: 1;
   }
-  
-  .modal-enter-from,
-  .modal-leave-to {
-    opacity: 0;
+}
+
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all 0.3s ease;
+}
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
+}
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
-  </style>
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+</style>

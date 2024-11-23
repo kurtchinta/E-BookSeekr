@@ -20,9 +20,9 @@ const routes = [
     meta: { title: 'Sign in/Sign up | E-BookSeekr' },
   },
   {
-    path: '/home', // Define the path for the Auth page
+    path: '/home', 
     component: Home,
-    meta: { title: 'Home | E-BookSeekr' }, // Set a title for the Auth page
+    meta: { title: 'Home | E-BookSeekr' },
   },
   {
     path: '/explore',
@@ -35,25 +35,30 @@ const routes = [
     meta: { title: 'Favorites | E-BookSeekr' },
   },
   {
-    path: '/profile', // Define the path for the Auth page
+    path: '/profile', 
     component: Profile,
-    meta: { title: 'Profile | E-BookSeekr' }, // Set a title for the Auth page
+    meta: { title: 'Profile | E-BookSeekr' }, 
   },
   {
     path: '/about',
     component: About,
     meta: { title: 'About | E-BookSeekr' },
   },
+  {
+    path: '/404',
+    component: About,
+    meta: { title: '404 Not Found | E-BookSeekr' },
+  },
 ];
 
 const router = createRouter({
-  history: createWebHistory(), // Using history mode for clean URLs
+  history: createWebHistory(), 
   routes,
 });
 
-// Set document title based on route meta
+
 router.beforeEach((to) => {
-  document.title = to.meta.title || 'E-LibraryHub'; // Fallback to default title
+  document.title = to.meta.title || 'E-BookSeekr'; 
 });
 
 export default router;
