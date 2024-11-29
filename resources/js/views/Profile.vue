@@ -278,6 +278,7 @@ const bottomNavLinks = [
   { href: '/explore', text: 'Explore', icon: Compass },
   { href: '/favorites', text: 'Favorites', icon: Heart },
   { href: '/profile', text: 'Profile', icon: User },
+  { href: '/about', text: 'About', icon: Info },
 ];
 
 const generateRandomUsername = () => {
