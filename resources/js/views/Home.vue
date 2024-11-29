@@ -25,6 +25,7 @@
             >
               <span class="animate-slide-in" :style="{ animationDelay: `${index * 0.1}s` }">{{ link.text }}</span>
             </a>
+            <button @click="handleLogout" class="logout-button">Logout</button>
             <button @click="toggleDarkMode" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200">
               <Sun v-if="isDarkMode" class="h-6 w-6 text-gray-400" />
               <Moon v-else class="h-6 w-6 text-gray-600" />
@@ -255,6 +256,7 @@
 <script setup>
 import { ref, reactive, onMounted, onUnmounted, watch } from 'vue'
 import { BookOpen, Search, Sun, Moon, Facebook, Instagram, Heart, Menu, X, Home, Compass, Info, User, LogOut } from 'lucide-vue-next'
+import { supabase } from "../supabase";
 
 const isDarkMode = ref(false)
 const isMobileMenuOpen = ref(false)
@@ -269,6 +271,24 @@ const newsletterEmail = ref('')
 const hasSearched = ref(false)
 const isLoading = ref(true)
 
+const handleLogout = async () => {
+  try {
+    // Sign out from Supabase
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+
+    // Remove tokens from localStorage
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+
+    // Redirect to login page
+    router.push('/auth');
+  } catch (error) {
+    console.error('Logout failed:', error.message);
+    alert(`Logout failed: ${error.message}`);
+  }
+};
+
 const navLinks = [
   { href: '/home', text: 'Home', icon: Home },
   { href: '/explore', text: 'Explore', icon: Compass },
@@ -281,10 +301,11 @@ const bottomNavLinks = [
   { href: '/explore', text: 'Explore', icon: Compass },
   { href: '/favorites', text: 'Favorites', icon: Heart },
   { href: '/profile', text: 'Profile', icon: User },
+  { href: '/about', text: 'About', icon: Info },
 ]
 const mobileNavLinks = [
   { href: '/reading-list', text: 'Reading List', icon: BookOpen },
-  { href: '/logout', text: 'Logout', icon: LogOut },
+  { href: '/auth', text: 'Logout', icon: LogOut },
   { href: '/about', text: 'About', icon: Info },
 ]
 const featuredBooks = reactive([

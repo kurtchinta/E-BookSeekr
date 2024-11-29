@@ -219,6 +219,7 @@ const mobileNavLinks = [
   { href: '/search', text: 'Search', icon: Search },
   { href: '/favorites', text: 'Favorites', icon: Heart },
   { href: '/profile', text: 'Profile', icon: User },
+  { href: '/about', text: 'About', icon: Info },
 ];
 
 const features = [
