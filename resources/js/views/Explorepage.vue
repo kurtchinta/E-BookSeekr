@@ -5,7 +5,7 @@
       <div class="text-center">
         <!-- Loader animation -->
         <div class="inline-block animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-amber-600 dark:border-amber-400"></div>
-        <p class="mt-4 text-lg font-semibold text-gray-800 dark:text-white">Loading...</p>
+        <p class="mt-4 text-lg font-semibold text-gray-800 dark:text-white"> Loading .... </p>
       </div>
     </div>
     <div v-else class="bg-gradient-to-br from-sepia-100 to-amber-100 dark:from-gray-900 dark:to-amber-900 transition-colors duration-300 flex-grow">
@@ -16,15 +16,17 @@
             <span class="text-2xl font-bold text-gray-800 dark:text-white animate-fade-in">E-BookSeekr</span>
           </div>
           <nav class="hidden md:flex items-center space-x-6">
-            <a
-              v-for="(link, index) in navLinks"
-              :key="link.href"
-              :href="link.href"
-              :class="['text-gray-600 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors', { 'font-bold': link.text === 'Explore' }]"
-              @click="setActiveLink(index)"
-            >
-              <span class="animate-slide-in" :style="{ animationDelay: `${index * 0.1}s` }">{{ link.text }}</span>
-            </a>
+            <router-link
+  v-for="(link, index) in navLinks"
+  :key="index"
+  :to="link.to"
+  class="nav-item"
+  @click="setActiveLink(index)"
+>
+  <link.icon />
+  {{ link.text }}
+</router-link>
+
             <button @click="toggleDarkMode" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200">
               <Sun v-if="isDarkMode" class="h-6 w-6 text-gray-400" />
               <Moon v-else class="h-6 w-6 text-gray-600" />
@@ -76,7 +78,7 @@
               <input
                 v-model="searchQuery"
                 type="text"
-                placeholder="Search by title, author, or genre"
+                placeholder="Search books..."
                 class="w-full px-4 py-2 rounded-full border-2 border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 dark:bg-gray-800 dark:text-white pr-10"
               />
               <button
@@ -94,7 +96,7 @@
               <option value="all">All</option>
               <option value="title">Title</option>
               <option value="author">Author</option>
-              <option value="genre">Genre</option>
+              <!-- <option value="genre">Genre</option> -->
             </select>
             <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-full transition duration-300 ease-in-out">
               <Search class="h-6 w-6 inline-block mr-2" />
@@ -122,10 +124,18 @@
           </div>
         </div>
 
+        
+
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
           <div v-for="book in displayedBooks" :key="book.id" class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:scale-105 relative">
-            <a :href="book.link" target="_blank" rel="noopener noreferrer">
-              <img :src="book.cover" :alt="book.title" class="w-full h-128 object-cover" />
+            <!-- <a :href="book.link" target="_blank" rel="noopener noreferrer"> -->
+              <div class="w-full h-96 relative">
+      <img
+        :src="book.cover"
+        :alt="book.title"
+        class="absolute inset-0 w-full h-full object-cover"
+      />
+    </div>
               <div class="p-4">
                 <h3 class="text-lg font-semibold mb-2 text-gray-800 dark:text-white">{{ book.title }}</h3>
                 <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">{{ book.author }}</p>
@@ -137,7 +147,7 @@
                   </span>
                 </div>
               </div>
-            </a>
+            <!-- </a> -->
             <button 
               @click.stop="toggleFavorite(book)"
               class="absolute top-2 right-2 text-white bg-gray-800 bg-opacity-50 hover:bg-opacity-75 p-2 rounded-full transition duration-300 ease-in-out"
@@ -229,6 +239,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { BookOpen, Search, Sun, Moon, Facebook, Instagram, Heart, Menu, Home, Compass, User, X, BookOpen as ReadingList, LogOut, Info } from 'lucide-vue-next'
+import axios from 'axios'
 
 const isDarkMode = ref(localStorage.getItem('darkMode') === 'true')
 const isMobileMenuOpen = ref(false)
@@ -236,22 +247,23 @@ const activeLink = ref(1) // Set to 1 for "Explore" page
 const selectedGenre = ref('All')
 const searchQuery = ref('')
 const searchType = ref('all')
+const books = ref([]) // Array for books fetched from the Google Books API
 const priceFilter = ref('all')
 const currentPage = ref(1)
 const showFavoriteAlert = ref(false)
 const favoriteAlertMessage = ref('')
 const newsletterEmail = ref('')
 const isLoading = ref(true)
-
+const apiKey = 'AIzaSyDMH2IGCoIzN8EKG5N2rC2QJxe2f17e3DA' // Replace with your Google API key
 const booksPerPage = 8
 
 const navLinks = [
-  { href: '/home', text: 'Home', icon: Home },
-  { href: '/explore', text: 'Explore', icon: Compass },
-  { href: '/favorites', text: 'Favorites', icon: Heart },
-  { href: '/profile', text: 'Profile', icon: User },
-  { href: '/about', text: 'About', icon: Info },
-]
+  { to: '/home', text: 'Home', icon: Home },
+  { to: '/explore', text: 'Explore', icon: Compass },
+  { to: '/favorites', text: 'Favorites', icon: Heart },
+  { to: '/profile', text: 'Profile', icon: User },
+  { to: '/about', text: 'About', icon: Info },
+];
 const bottomNavLinks = [
   { href: '/home', text: 'Home', icon: Home },
   { href: '/explore', text: 'Explore', icon: Compass },
@@ -267,35 +279,113 @@ const mobileNavLinks = [
 
 const genres = ['All', 'Fiction', 'Non-Fiction', 'Mystery', 'Sci-Fi', 'Romance', 'Biography', 'Fantasy', 'Thriller', 'Horror']
 
-const books = ref([
-  { id: 1, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', genre: 'Fiction', cover: '/gatsbyjpg (1).jpg', price: '$9.99', isFree: false, link: '/books/1', isFavorite: false },
-  { id: 2, title: '1984', author: 'George Orwell', genre: 'Sci-Fi', cover: '/george (1).jpg', price: '$8.99', isFree: false, link: '/books/2', isFavorite: false },
-  { id: 3, title: 'Pride and Prejudice', author: 'Jane Austen', genre: 'Romance', cover: '/pride.jpg', price: 'Free', isFree: true, link: '/books/3', isFavorite: false },
-  { id: 4, title: 'To Kill a Mockingbird', author: 'Harper Lee', genre: 'Fiction', cover: '/to kill (2).jpg', price: '$7.99', isFree: false, link: '/books/4', isFavorite: false },
-  { id: 5, title: 'The Catcher in the Rye', author: 'J.D. Salinger', genre: 'Fiction', cover: '/catch.jpg', price: '$6.99', isFree: false, link: '/books/5', isFavorite: false },
-  { id: 6, title: 'The Hobbit', author: 'J.R.R. Tolkien', genre: 'Fantasy', cover: '/hobbit.jpg', price: '$10.99', isFree: false, link: '/books/6', isFavorite: false },
-  { id: 7, title: 'The Da Vinci Code', author: 'Dan Brown', genre: 'Mystery', cover: '/vinci.jpg', price: '$9.99', isFree: false, link: '/books/7', isFavorite: false },
-  { id: 8, title: 'The Alchemist', author: 'Paulo Coelho', genre: 'Fiction', cover: '/alchemist.jpg', price: '$8.99', isFree: false, link: '/books/8', isFavorite: false },
-  { id: 9, title: 'Sapiens: A Brief History of Humankind', author: 'Yuval Noah Harari', genre: 'Non-Fiction', cover: '/sapiens.jpg', price: '$12.99', isFree: false, link: '/books/9', isFavorite: false },
-  { id: 10, title: 'The Diary of a Young Girl', author: 'Anne Frank', genre: 'Biography', cover: '/anne.jpg', price: '$6.99', isFree: false, link: '/books/10', isFavorite: false },
-  { id: 11, title: 'Gone Girl', author: 'Gillian Flynn', genre: 'Thriller', cover: '/gone.jpg', price: '$10.99', isFree: false, link: '/books/11', isFavorite: false },
-  { id: 12, title: 'The Shining', author: 'Stephen King', genre: 'Horror', cover: '/shining.jpg', price: '$9.99', isFree: false, link: '/books/12', isFavorite: false },
-])
+// const filteredBooks = computed(() => {
+//   return books.value.filter(book => {
+//     const genreMatch = selectedGenre.value === 'All' || book.genre === selectedGenre.value
+//     const searchMatch = searchQuery.value === '' || 
+//       (searchType.value === 'all' && (book.title.toLowerCase().includes(searchQuery.value.toLowerCase()) || book.author.toLowerCase().includes(searchQuery.value.toLowerCase()))) ||
+//       (searchType.value === 'title' && book.title.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+//       (searchType.value === 'author' && book.author.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
+//       (searchType.value === 'genre' && book.genre.toLowerCase().includes(searchQuery.value.toLowerCase()))
+//     const priceMatch = priceFilter.value === 'all' || 
+//       (priceFilter.value === 'free' && book.isFree) ||
+//       (priceFilter.value === 'paid' && !book.isFree)
+//     return genreMatch && searchMatch && priceMatch
+//   })
+// })
+
+const fetchDefaultBooks = async () => {
+  isLoading.value = true;
+  try {
+    // Use a default query like "popular books"
+    const response = await axios.get(
+      `https://www.googleapis.com/books/v1/volumes?q=bestsellers&key=${apiKey}`
+    );
+    books.value = response.data.items.map(item => ({
+      id: item.id,
+      title: item.volumeInfo.title,
+      author: item.volumeInfo.authors?.join(', ') || 'Unknown Author',
+      genre: item.volumeInfo.categories?.[0] || 'Unknown Genre',
+      cover: item.volumeInfo.imageLinks?.thumbnail?.replace('zoom=1') || 'https://via.placeholder.com/128x200?text=No+Image',
+      price: item.saleInfo.saleability === 'FREE' ? 'Free' : item.saleInfo.listPrice?.amount || 'N/A',
+      isFree: item.saleInfo.saleability === 'FREE',
+      link: item.volumeInfo.infoLink,
+      isFavorite: false,
+    }));
+  } catch (error) {
+    console.error('Error fetching default books:', error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
 
 const filteredBooks = computed(() => {
-  return books.value.filter(book => {
-    const genreMatch = selectedGenre.value === 'All' || book.genre === selectedGenre.value
-    const searchMatch = searchQuery.value === '' || 
-      (searchType.value === 'all' && (book.title.toLowerCase().includes(searchQuery.value.toLowerCase()) || book.author.toLowerCase().includes(searchQuery.value.toLowerCase()))) ||
-      (searchType.value === 'title' && book.title.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
-      (searchType.value === 'author' && book.author.toLowerCase().includes(searchQuery.value.toLowerCase())) ||
-      (searchType.value === 'genre' && book.genre.toLowerCase().includes(searchQuery.value.toLowerCase()))
-    const priceMatch = priceFilter.value === 'all' || 
+  const query = searchQuery.value.toLowerCase();
+
+  const filtered = books.value.filter((book) => {
+    const genreMatch = selectedGenre.value === 'All' || book.genre === selectedGenre.value;
+    const searchMatch =
+      searchQuery.value === '' ||
+      (searchType.value === 'all' &&
+        (book.title.toLowerCase().includes(query) || book.author.toLowerCase().includes(query))) ||
+      (searchType.value === 'title' && book.title.toLowerCase().includes(query)) ||
+      (searchType.value === 'author' && book.author.toLowerCase().includes(query)) ||
+      (searchType.value === 'genre' && book.genre.toLowerCase().includes(query));
+    const priceMatch =
+      priceFilter.value === 'all' ||
       (priceFilter.value === 'free' && book.isFree) ||
-      (priceFilter.value === 'paid' && !book.isFree)
-    return genreMatch && searchMatch && priceMatch
-  })
-})
+      (priceFilter.value === 'paid' && !book.isFree);
+
+    return genreMatch && searchMatch && priceMatch;
+  });
+
+  // Trigger a default books fetch if no filters and no search results
+  if (filtered.length === 0 && searchQuery.value === '' && selectedGenre.value === 'All') {
+    fetchDefaultBooks(); // Fetch the default books dynamically
+    return [];
+  }
+
+  return filtered;
+});
+
+
+// const filteredBooks = computed(() => {
+//   const query = searchQuery.value.toLowerCase();
+
+//   // Apply filters for search query, genre, and price
+//   const filtered = books.value.filter((book) => {
+//     const genreMatch = selectedGenre.value === 'All' || book.genre === selectedGenre.value;
+//     const searchMatch =
+//       searchQuery.value === '' ||
+//       (searchType.value === 'all' &&
+//         (book.title.toLowerCase().includes(query) ||
+//          book.author.toLowerCase().includes(query))) ||
+//       (searchType.value === 'title' && book.title.toLowerCase().includes(query)) ||
+//       (searchType.value === 'author' && book.author.toLowerCase().includes(query)) ||
+//       (searchType.value === 'genre' && book.genre.toLowerCase().includes(query));
+//     const priceMatch =
+//       priceFilter.value === 'all' ||
+//       (priceFilter.value === 'free' && book.isFree) ||
+//       (priceFilter.value === 'paid' && !book.isFree);
+
+//     return genreMatch && searchMatch && priceMatch;
+//   });
+
+//   // Return a random subset of books if no filters or search query are applied
+//   if (filtered.length === 0 && searchQuery.value === '' && selectedGenre.value === 'All') {
+//     return getRandomBooks(12); // Adjust the count as needed
+//   }
+
+//   return filtered;
+// });
+
+
+const getRandomBooks = (count) => {
+  const baseBooks = books.value.length ? books.value : defaultBooks; // Use defaultBooks if books are empty
+  const shuffled = [...baseBooks].sort(() => Math.random() - 0.5); // Shuffle array
+  return shuffled.slice(0, count); // Return a subset
+};
 
 const displayedBooks = computed(() => {
   return filteredBooks.value.slice(0, currentPage.value * booksPerPage)
@@ -306,6 +396,36 @@ const toggleDarkMode = () => {
   localStorage.setItem('darkMode', isDarkMode.value)
   document.documentElement.classList.toggle('dark', isDarkMode.value)
 }
+
+const fetchBooks = async (query, type = 'all') => {
+  isLoading.value = true;
+  try {
+    const filter = type !== 'all' ? `+${type}:${query}` : query;
+    const response = await axios.get(
+      `https://www.googleapis.com/books/v1/volumes?q=${filter}&key=${apiKey}`
+    );
+    books.value = response.data.items.map(item => ({
+  id: item.id,
+  title: item.volumeInfo.title,
+  author: item.volumeInfo.authors?.join(', ') || 'Unknown Author',
+  genre: item.volumeInfo.categories?.[0] || 'Unknown Genre',
+  cover: item.volumeInfo.imageLinks?.medium ||
+         item.volumeInfo.imageLinks?.large ||
+         item.volumeInfo.imageLinks?.thumbnail?.replace('zoom=1') || 
+         'https://via.placeholder.com/128x200?text=No+Image',
+  price: item.saleInfo.saleability === 'FREE' ? 'Free' : item.saleInfo.listPrice?.amount || 'N/A',
+  isFree: item.saleInfo.saleability === 'FREE',
+  link: item.volumeInfo.infoLink,
+  isFavorite: false,
+})) || defaultBooks;
+  } catch (error) {
+    console.error('Error fetching books:', error);
+    books.value = defaultBooks; // Use fallback books
+  } finally {
+    isLoading.value = false;
+  }
+};
+
 
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
@@ -354,7 +474,7 @@ const removeFromFavorites = (book) => {
 }
 
 const handleSearch = () => {
-  currentPage.value = 1
+  fetchBooks(searchQuery.value, searchType.value)
   // Additional search logic can be added here if needed
 }
 

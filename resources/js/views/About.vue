@@ -7,14 +7,17 @@
           <span class="text-2xl font-bold text-gray-800 dark:text-white animate-fade-in">E-BookSeekr</span>
         </div>
         <nav class="hidden md:flex items-center space-x-6">
-          <a
-            v-for="(link, index) in navLinks"
-            :key="link.href"
-            :href="link.href"
-            :class="['text-gray-600 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors', { 'font-bold': link.text === 'About' }]"
-          >
-            <span class="animate-slide-in" :style="{ animationDelay: `${index * 0.1}s` }">{{ link.text }}</span>
-          </a>
+          <router-link
+  v-for="(link, index) in navLinks"
+  :key="index"
+  :to="link.to"
+  class="nav-item"
+  @click="setActiveLink(index)"
+>
+  <link.icon />
+  {{ link.text }}
+</router-link>
+
           <button @click="toggleDarkMode" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200">
             <Sun v-if="isDarkMode" class="h-6 w-6 text-gray-400" />
             <Moon v-else class="h-6 w-6 text-gray-600" />
@@ -207,11 +210,11 @@ const newsletterEmail = ref('');
 const isBurgerMenuOpen = ref(false);
 
 const navLinks = [
-  { href: '/home', text: 'Home', icon: Home },
-  { href: '/search', text: 'Search', icon: Search },
-  { href: '/favorites', text: 'Favorites', icon: Heart },
-  { href: '/profile', text: 'Profile', icon: User },
-  { href: '/about', text: 'About', icon: Info },
+  { to: '/home', text: 'Home', icon: Home },
+  { to: '/explore', text: 'Explore', icon: Compass },
+  { to: '/favorites', text: 'Favorites', icon: Heart },
+  { to: '/profile', text: 'Profile', icon: User },
+  { to: '/about', text: 'About', icon: Info },
 ];
 
 const mobileNavLinks = [

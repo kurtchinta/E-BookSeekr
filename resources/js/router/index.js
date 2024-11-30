@@ -65,32 +65,38 @@ const router = createRouter({
 });
 
 
-router.beforeEach((to) => {
+router.beforeEach((to, from, next) => {
   const token = localStorage.getItem("access_token");
-  const isAuthenticated = !!token;
+  const isAuthenticated = token !== null;
 
-  document.title = to.meta.title || 'E-BookSeekr';
-
-  console.log("Navigating to:", to.path);
-  console.log("Is Authenticated:", isAuthenticated);
-
-  // If route requires authentication and user is not authenticated
+  // Optionally, validate the token against Supabase's session
   if (to.meta.requiresAuth && !isAuthenticated) {
-    console.log("Not authenticated - Redirecting to /auth");
-    return { path: "/auth" }; // Redirect to login
+      console.log("Not authenticated - Redirecting to /auth");
+      next("/auth");
+  } else if (!to.meta.requiresAuth && isAuthenticated) {
+      console.log("Authenticated - Redirecting to /homesec");
+      next("/home");
+  } else {
+      console.log("Allowing navigation to:", to.path);
+      next();
   }
-
-  // If the user is authenticated and trying to access /auth or another public route
-  if (to.path === "/auth" && isAuthenticated) {
-    console.log("Authenticated - Redirecting to /home");
-    return { path: "/home" }; // Redirect to home
-  }
-
-  // Allow navigation
-  console.log("Allowing navigation to:", to.path);
-  return true;
 });
 
 console.log(router.getRoutes());
 
+router.afterEach((to, from) => {
+  const token = localStorage.getItem("access_token"); // Check token in localStorage
+  const isAuthenticated = token !== null;
+  console.log("Token:", localStorage.getItem("access_token"));
+  console.log("Is Authenticated:", isAuthenticated);
+
+  // Only reload the landing page if the user is authenticated
+  if (to.path === "/" && isAuthenticated) {
+      // Reload only if the user is authenticated and trying to navigate to the landing page
+      // You can also trigger a manual session refresh here if necessary
+      setTimeout(() => {
+          window.location.reload(); // Trigger a page reload to reset the app's state
+      }, 100); // Small delay to ensure session state is updated
+  }
+});
 export default router;

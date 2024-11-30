@@ -215,7 +215,7 @@
         </div>
     </template>
 
- <script>
+<script>
 import { ref, reactive, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { supabase } from "../supabase"; // Adjust path based on your setup
@@ -314,22 +314,6 @@ export default {
       return true;
     };
 
-    const handleGoogleAuth = async () => {
-      try {
-        const  {user, error} = await supabase.auth.signInWithOAuth({
-          provider: 'google'
-        });
-
-        if(error) {
-          throw error;
-        }
-
-      } catch (error) {
-        console.error('Error signing in with Google:', error);
-        alert(error.message);
-      }
-    };
-
     const validateConfirmPassword = () => {
       if (signupForm.confirmPassword !== signupForm.password) {
         errors.confirmPassword = "Passwords do not match.";
@@ -340,114 +324,59 @@ export default {
     };
 
     const handleSubmit = async (formType) => {
-        if (formType === "signin") {
-    // Validate the sign-in form fields
-    if (!signinForm.email || !signinForm.password) {
-      showToast("Please provide both email and password.", "error");
-      return;
-    }
-
-    try {
-      // Attempt to sign in using Supabase
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: signinForm.email,
-        password: signinForm.password,
-      });
-
-      if (error) {
-        console.error("Sign-in error:", error.message);
-        showToast(`Sign-in error: ${error.message}`, "error");
-        return;
-      }
-
-      // Handle successful sign-in
-      const session = data.session;
-      if (session) {
-        localStorage.setItem("access_token", session.access_token);
-        localStorage.setItem("refresh_token", session.refresh_token);
-        showToast("Sign-in successful! Redirecting...", "success");
-
-        // Navigate to the secure route (adjust route as needed)
-        router.push("/home");
-      }
-    } catch (err) {
-      console.error("Error during sign-in:", err.message);
-      showToast(`An unexpected error occurred: ${err.message}`, "error");
-    }
-  } else if (formType === "signin") {
-    // Sign-in logic
-    if (this.loginEmail && this.loginPassword) {
-      try {
-        // Attempt to sign in
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: this.loginEmail,
-          password: this.loginPassword,
-        });
-
-        if (error) throw error;
-
-        const session = data.session;
-        if (session) {
-          localStorage.setItem("access_token", session.access_token);
-          localStorage.setItem("refresh_token", session.refresh_token);
+      if (formType === "signin") {
+        if (!signinForm.email || !signinForm.password) {
+          showToast("Please provide both email and password.", "error");
+          return;
         }
 
-        // "Remember Me" logic
-        if (this.rememberMe) {
-          localStorage.setItem("email", this.loginEmail);
-          localStorage.setItem("password", this.loginPassword);
-        } else {
-          localStorage.removeItem("email");
-          localStorage.removeItem("password");
-        }
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: signinForm.email,
+            password: signinForm.password,
+          });
 
-        // Show success toast and navigate to a secure route
-        this.showToast("Login successful!", "success");
-        this.$router.push("/home");
-      } catch (error) {
-        this.showToast(`Login error: ${error.message}`, "error");
-      }
-    } else {
-      this.showToast("Please fill in all fields for login.", "error");
-    }
-  } else if (formType === "signup") {
-        if (validatePassword() && validateConfirmPassword()) {
+          if (error) {
+            showToast(`Sign-in error: ${error.message}`, "error");
+            return;
+          }
+
+          const session = data.session;
+          if (session) {
+            localStorage.setItem("access_token", session.access_token);
+            localStorage.setItem("refresh_token", session.refresh_token);
+            showToast("Sign-in successful! Redirecting...", "success");
+            router.push("/home");
+          }
+        } catch (err) {
+          showToast(`An unexpected error occurred: ${err.message}`, "error");
+        }
+      } else if (formType === "signup") {
+        if (
+          validateFirstName() &&
+          validateLastName() &&
+          validatePassword() &&
+          validateConfirmPassword()
+        ) {
           try {
-            // Step 1: Sign up with email and password
             const { data: signUpData, error: signUpError } =
               await supabase.auth.signUp({
                 email: signupForm.email,
                 password: signupForm.password,
               });
 
-            console.log("signUpData:", signUpData);
-            console.log("signUpError:", signUpError);
-
             if (signUpError) {
-              console.error("Error during signup:", signUpError.message);
               showToast(`Signup error: ${signUpError.message}`, "error");
-              return;
-            }
-
-            if (signUpData?.user?.email_confirmed === false) {
-              showToast(
-                "Please check your email to confirm your registration.",
-                "info"
-              );
               return;
             }
 
             const user_id = signUpData.user?.id;
             if (!user_id) {
-              console.error("No user ID returned after signup");
               showToast("No user ID returned after signup.", "error");
               return;
             }
 
-            console.log("User ID after signup:", user_id);
-            localStorage.setItem("user_id", user_id);
-
-            const { data: insertData, error: insertError } = await supabase
+            const { error: insertError } = await supabase
               .from("users_info")
               .insert([
                 {
@@ -459,55 +388,43 @@ export default {
                 },
               ]);
 
-            console.log("insertData:", insertData);
-            console.log("insertError:", insertError);
-
             if (insertError) {
-              console.error("Error during insert:", insertError.message);
-              showToast(
-                `Error inserting user data: ${insertError.message}`,
-                "error"
-              );
+              showToast(`Error inserting user data: ${insertError.message}`, "error");
               return;
             }
 
-            const { error: updateError } = await supabase.auth.updateUser({
-              data: {
-                firstname: signupForm.firstname,
-                lastname: signupForm.lastname,
-              },
-            });
-
-            if (updateError) {
-              console.error(
-                "Error updating user details in auth:",
-                updateError.message
-              );
-              showToast(
-                `Error updating user details: ${updateError.message}`,
-                "error"
-              );
-              return;
-            }
-
-            showToast(
-              "Signup successful! Please confirm your email.",
-              "success"
-            );
-
+            showToast("Signup successful! Please confirm your email.", "success");
             Object.keys(signupForm).forEach((key) => (signupForm[key] = ""));
-            console.log("Signup form submitted!");
           } catch (error) {
-            console.error("General error:", error);
-            console.error("Error in handleSubmit:", error);
             showToast(`An error occurred: ${error.message}`, "error");
           }
-          
         } else {
           showToast("Please correct the errors in the signup form.", "error");
         }
       }
     };
+
+    const handleGoogleAuth = async () => {
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        queryParams: {
+          prompt: 'select_account', // Forces account selection
+        },
+      },
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    console.log('Authentication successful:', data);
+  } catch (error) {
+    console.error('Error signing in with Google:', error);
+    alert('Error signing in with Google: ' + error.message);
+  }
+};
 
     const toggleTab = () => {
       activeTab.value = activeTab.value === "signin" ? "signup" : "signin";
@@ -535,11 +452,12 @@ export default {
       validatePassword,
       validateConfirmPassword,
       handleSubmit,
-      toggleTab
+      toggleTab,
     };
   },
 };
 </script>
+
 
 
     <style scoped>

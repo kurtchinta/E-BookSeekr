@@ -16,20 +16,22 @@
             <span class="text-2xl font-bold text-gray-800 dark:text-white animate-fade-in">E-BookSeekr</span>
           </div>
           <nav class="hidden md:flex items-center space-x-6">
-            <a
-              v-for="(link, index) in navLinks"
-              :key="link.href"
-              :href="link.href"
-              :class="['text-gray-600 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors', { 'font-bold': activeLink === index }]"
-              @click="setActiveLink(index)"
-            >
-              <span class="animate-slide-in" :style="{ animationDelay: `${index * 0.1}s` }">{{ link.text }}</span>
-            </a>
-            <button @click="handleLogout" class="logout-button">Logout</button>
+            <router-link
+  v-for="(link, index) in navLinks"
+  :key="index"
+  :to="link.to"
+  class="nav-item"
+  @click="setActiveLink(index)"
+>
+  <link.icon />
+  {{ link.text }}
+</router-link>
+
+            <LogoutButton />
             <button @click="toggleDarkMode" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200">
               <Sun v-if="isDarkMode" class="h-6 w-6 text-gray-400" />
               <Moon v-else class="h-6 w-6 text-gray-600" />
-            </button>
+            </button> 
           </nav>
           <div class="md:hidden relative">
             <button @click.stop="toggleMobileMenu" class="text-gray-600 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 p-2">
@@ -71,60 +73,7 @@
           <p class="text-xl mb-8 text-gray-600 dark:text-gray-300 max-w-2xl mx-auto animate-fade-in">
             "Discover, buy, and read your next favorite e-book with E-BookSeekr. Explore a vast library of genres and authors today!"
           </p>
-          <form @submit.prevent="handleSearch" class="max-w-3xl mx-auto">
-            <div class="flex flex-col md:flex-row gap-4 mb-4">
-              <div class="relative flex-grow">
-                <input
-                  v-model="searchQuery"
-                  type="text"
-                  placeholder="Search by title, author, or genre"
-                  class="w-full px-4 py-2 rounded-full border-2 border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 dark:bg-gray-800 dark:text-white pr-10"
-                  @focus="showRecentSearches = true"
-                />
-                <button
-                  v-if="searchQuery"
-                  @click="clearSearch"
-                  class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                >
-                  <X class="h-5 w-5" />
-                </button>
-                <div
-                  v-if="showRecentSearches && recentSearches.length > 0"
-                  class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-lg"
-                >
-                  <ul>
-                    <li
-                      v-for="(search, index) in recentSearches"
-                      :key="index"
-                      class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex justify-between items-center"
-                      @click="setSearch(search)"
-                    >
-                      <span>{{ search }}</span>
-                      <button
-                        @click.stop="removeRecentSearch(index)"
-                        class="text-gray-500 hover:text-amber-500"
-                      >
-                        <X class="h-4 w-4" />
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <select
-                v-model="searchType"
-                class="px-4 py-2 rounded-full border-2 border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600 dark:bg-gray-800 dark:text-white"
-              >
-                <option value="all">All</option>
-                <option value="title">Title</option>
-                <option value="author">Author</option>
-                <option value="genre">Genre</option>
-              </select>
-              <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-full transition duration-300 ease-in-out">
-                <Search class="h-6 w-6 inline-block mr-2" />
-                Search
-              </button>
-            </div>
-          </form>
+
         </section>
 
         <section v-if="recentSearches.length > 0 && hasSearched" class="mb-16">
@@ -253,10 +202,21 @@
   </div>
 </template>
 
+<script>
+import LogoutButton from "./logoutButton.vue";
+export default {
+  name: "Home",
+  components: {
+    LogoutButton,
+  },
+};
+</script>
+
 <script setup>
 import { ref, reactive, onMounted, onUnmounted, watch } from 'vue'
 import { BookOpen, Search, Sun, Moon, Facebook, Instagram, Heart, Menu, X, Home, Compass, Info, User, LogOut } from 'lucide-vue-next'
 import { supabase } from "../supabase";
+import axios from "axios";
 
 const isDarkMode = ref(false)
 const isMobileMenuOpen = ref(false)
@@ -271,31 +231,34 @@ const newsletterEmail = ref('')
 const hasSearched = ref(false)
 const isLoading = ref(true)
 
-const handleLogout = async () => {
+
+const handleLogout = async (router) => {
   try {
-    // Sign out from Supabase
+    // Sign out the current user
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
 
-    // Remove tokens from localStorage
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+    // Clear tokens from localStorage
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
 
-    // Redirect to login page
-    router.push('/auth');
+    // Redirect to the login page
+    $router.push("/auth");
   } catch (error) {
-    console.error('Logout failed:', error.message);
+    console.error("Logout failed:", error.message);
     alert(`Logout failed: ${error.message}`);
   }
 };
 
+
 const navLinks = [
-  { href: '/home', text: 'Home', icon: Home },
-  { href: '/explore', text: 'Explore', icon: Compass },
-  { href: '/favorites', text: 'Favorites', icon: Heart },
-  { href: '/profile', text: 'Profile', icon: User },
-  { href: '/about', text: 'About', icon: Info },
-]
+  { to: '/home', text: 'Home', icon: Home },
+  { to: '/explore', text: 'Explore', icon: Compass },
+  { to: '/favorites', text: 'Favorites', icon: Heart },
+  { to: '/profile', text: 'Profile', icon: User },
+  { to: '/about', text: 'About', icon: Info },
+];
+
 const bottomNavLinks = [
   { href: '/home', text: 'Home', icon: Home },
   { href: '/explore', text: 'Explore', icon: Compass },
@@ -346,10 +309,10 @@ const clearSearch = () => {
   searchQuery.value = ''
 }
 
-const setSearch = (search) => {
-  searchQuery.value = search
-  handleSearch()
-}
+// const setSearch = (search) => {
+//   searchQuery.value = search
+//   handleSearch()
+// }
 
 const removeRecentSearch = (index) => {
   recentSearches.value.splice(index, 1)

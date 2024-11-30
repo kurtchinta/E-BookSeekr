@@ -41,4 +41,8 @@ return [
     'redirect' => 'http://127.0.0.1:8000/auth/v1/callback',
     ],
 
+    'google_books' => [
+    'key' => env('GOOGLE_BOOKS_API_KEY'),
+    ],
+
 ];

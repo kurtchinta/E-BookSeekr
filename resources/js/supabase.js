@@ -1,17 +1,32 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
-export const supabase = createClient(supabaseUrl, supabaseKey)
+const supabase = createClient(supabaseUrl, supabaseKey); // Define supabase
 
-// function loginWithGoogle(){
-//     const { data, error } = await supabase.auth.signInWithOAuth({
-//         provider: 'google'
-//       })
-// }
+// Google Auth
+async function loginwithGoogle() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+    });
+    return { data, error }; // Return data and error for handling in the component
+}
 
-// function logout(){
-//     const { error } = await supabase.auth.signOut()
-// }
+async function handleLogout(router) {
+    await supabase.auth.signOut(); // Sign out the current user
+    localStorage.removeItem("access_token"); // Clear the token
+    $router.push("/auth"); // Redirect to the login page
+}
 
-export default supabase
+// Auth State Listener
+supabase.auth.onAuthStateChange((event, session) => {
+    if (session) {
+        // Store the access token
+        localStorage.setItem("access_token", session.access_token);
+    } else {
+        // Remove token when logged out
+        localStorage.removeItem("access_token");
+    }
+});
+
+export { supabase, loginwithGoogle, handleLogout }; // Export supabase only once
