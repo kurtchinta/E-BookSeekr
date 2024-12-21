@@ -68,29 +68,53 @@
         <h1 class="text-4xl font-bold mb-8 text-gray-900 dark:text-white">Your Reading Journey</h1>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Profile Card -->
           <div class="md:col-span-1">
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 relative overflow-hidden">
+              <!-- Decorative Corner -->
               <div class="absolute top-0 right-0 w-24 h-24 bg-amber-500 dark:bg-amber-600 transform rotate-45 translate-x-8 -translate-y-8"></div>
+
               <div class="relative z-10">
+                <!-- Avatar Section -->
                 <div class="relative w-32 h-32 mx-auto mb-4">
-                  <img :src="user.avatar" :alt="user.name" class="w-full h-full rounded-full border-4 border-amber-500 dark:border-amber-600 object-cover" />
-                  <label for="avatar-upload" class="absolute bottom-0 right-0 bg-amber-600 hover:bg-amber-700 text-white rounded-full p-2 cursor-pointer transition duration-300 ease-in-out">
-                    <Plus class="h-5 w-5" />
-                  </label>
-                  <input id="avatar-upload" type="file" accept="image/*" @change="handleAvatarUpload" class="hidden" />
+                    <img
+                      v-if="user.avatar_url"
+                      :src="user.avatar_url"
+                      alt="User Avatar"
+                      class="w-24 h-24 rounded-full mb-4 border-4 border-blue-500 shadow-lg"
+                    />
+                    <img
+                      v-else
+                      :src="'https://ui-avatars.com/api/?name=' + user.firstname + '+' + user.lastname + '&background=random'"
+                      alt="User Avatar"
+                      class="w-24 h-24 rounded-full mb-4 border-4 border-blue-500 shadow-lg"
+                    />
+                  </div>
+
+                <!-- User Info -->
+                <div class="flex items-center gap-2 mb-2">
+                  <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ user.firstname }}</h2>
+                  <h3 class="text-2xl font-semibold text-gray-900 dark:text-white">{{ user.lastname }}</h3>
                 </div>
-                <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-2">{{ user.name }}</h2>
-                <p class="text-gray-600 dark:text-gray-400 mb-2">@{{ user.username }}</p>
+                <p class="text-gray-600 dark:text-gray-400 mb-2">{{ user.username }}</p>
                 <p class="text-gray-600 dark:text-gray-400 mb-2">{{ user.email }}</p>
-                <p class="text-gray-600 dark:text-gray-400 mb-2">Born: {{ new Date(user.birthdate).toLocaleDateString() }}</p>
-                <p class="text-gray-600 dark:text-gray-400 mb-4">Location: {{ user.region }}, {{ user.country }}</p>
-                <button @click="openEditModal" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out">
+                <p v-if="user.birthday" class="text-gray-600 dark:text-gray-400 mb-2">
+                  {{ new Date(user.birthday).toLocaleDateString() }}
+                </p>
+                <p v-else class="text-gray-600 dark:text-gray-400 mb-2">Birthday: N/A</p>
+
+                <!-- Edit Button -->
+                <button
+                  @click="openEditModal"
+                  class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-full transition duration-300 ease-in-out"
+                >
                   Edit Profile
                 </button>
               </div>
             </div>
           </div>
 
+          <!-- Reading Stats -->
           <div class="md:col-span-2">
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
               <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Reading Stats</h3>
@@ -99,17 +123,38 @@
                   <div class="relative inline-flex items-center justify-center">
                     <svg class="w-20 h-20">
                       <circle class="text-gray-300 dark:text-gray-600" stroke-width="5" stroke="currentColor" fill="transparent" r="30" cx="40" cy="40" />
-                      <circle class="text-amber-600 dark:text-amber-400" stroke-width="5" :stroke-dasharray="circumference" :stroke-dashoffset="dashOffset" stroke="currentColor" fill="transparent" r="30" cx="40" cy="40" />
+                      <circle
+                        class="text-amber-600 dark:text-amber-400"
+                        stroke-width="5"
+                        :stroke-dasharray="circumference"
+                        :stroke-dashoffset="dashOffset"
+                        stroke="currentColor"
+                        fill="transparent"
+                        r="30"
+                        cx="40"
+                        cy="40"
+                      />
                     </svg>
                     <span class="absolute text-xl font-bold text-gray-800 dark:text-white">{{ user.booksBrowsed }}</span>
                   </div>
                   <p class="text-gray-600 dark:text-gray-400 mt-2">Books Browsed</p>
                 </div>
+
                 <div class="text-center">
                   <div class="relative inline-flex items-center justify-center">
                     <svg class="w-20 h-20">
                       <circle class="text-gray-300 dark:text-gray-600" stroke-width="5" stroke="currentColor" fill="transparent" r="30" cx="40" cy="40" />
-                      <circle class="text-amber-600 dark:text-amber-400" stroke-width="5" :stroke-dasharray="circumference" :stroke-dashoffset="favoriteDashOffset" stroke="currentColor" fill="transparent" r="30" cx="40" cy="40" />
+                      <circle
+                        class="text-amber-600 dark:text-amber-400"
+                        stroke-width="5"
+                        :stroke-dasharray="circumference"
+                        :stroke-dashoffset="favoriteDashOffset"
+                        stroke="currentColor"
+                        fill="transparent"
+                        r="30"
+                        cx="40"
+                        cy="40"
+                      />
                     </svg>
                     <span class="absolute text-xl font-bold text-gray-800 dark:text-white">{{ user.favoriteBooks }}</span>
                   </div>
@@ -117,12 +162,17 @@
                 </div>
               </div>
             </div>
-            
+
+            <!-- Reading List -->
             <section id="reading">
               <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                 <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Reading List</h3>
                 <ul class="space-y-4">
-                  <li v-for="book in user.readingList" :key="book.id" class="flex items-center justify-between p-4 bg-gray-100 dark:bg-gray-700 rounded-lg transition-transform duration-300 hover:scale-105">
+                  <li
+                    v-for="book in user.readingList"
+                    :key="book.id"
+                    class="flex items-center justify-between p-4 bg-gray-100 dark:bg-gray-700 rounded-lg transition-transform duration-300 hover:scale-105"
+                  >
                     <div>
                       <h4 class="font-semibold text-gray-800 dark:text-gray-200">{{ book.title }}</h4>
                       <p class="text-sm text-gray-600 dark:text-gray-400">{{ book.author }}</p>
@@ -141,16 +191,16 @@
       <!-- Bottom Navbar (Mobile Only) -->
       <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-lg">
         <div class="flex justify-around items-center h-16">
-          <a
-            v-for="(link, index) in bottomNavLinks"
-            :key="link.href"
-            :href="link.href"
+          <router-link
+            v-for="(link, index) in mobileNavLinks"
+            :key="link.to"
+            :to="link.to"
             class="flex flex-col items-center justify-center w-full h-full"
             :class="{ 'text-amber-600 dark:text-amber-400': link.text === 'Profile', 'text-gray-600 dark:text-gray-400': link.text !== 'Profile' }"
           >
             <component :is="link.icon" class="h-6 w-6" />
             <span class="text-xs mt-1">{{ link.text }}</span>
-          </a>
+          </router-link>
         </div>
       </nav>
 
@@ -253,15 +303,37 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { Moon, Sun, Menu, BookOpen, Home, Compass, Heart, User, Info, ExternalLink, Facebook, Instagram, Plus, LogOut } from 'lucide-vue-next';
+import { ref, onMounted } from 'vue';
+import { Moon, Sun, Menu, Home, Compass, Heart, User, Info, Facebook, Instagram } from 'lucide-vue-next';
+import { supabase } from '../supabase';
 
+// State management
 const isDarkMode = ref(false);
 const isMobileMenuOpen = ref(false);
-const newsletterEmail = ref('');
-const isEditModalOpen = ref(false);
+
 const isLoading = ref(true);
 
+// Default user state
+const user = ref({
+  firstname: 'Guest',
+  lastname: '',
+  username: '',
+  email: '',
+  avatar_url: '',
+  birthdate: '',
+  country: '',
+  region: '',
+});
+
+// Modal state
+const isEditModalOpen = ref(false);
+
+// Edited user state
+const editedUser = ref({
+  username: '',
+});
+
+// Navigation links for desktop and mobile
 const navLinks = [
   { to: '/home', text: 'Home', icon: Home },
   { to: '/explore', text: 'Explore', icon: Compass },
@@ -270,108 +342,101 @@ const navLinks = [
   { to: '/about', text: 'About', icon: Info },
 ];
 
-const mobileNavLinks = [
-  { href: '/reading-list', text: 'Reading List', icon: BookOpen },
-  { href: '/logout', text: 'Logout', icon: LogOut },
-  { href: '/about', text: 'About', icon: Info },
-];
+const mobileNavLinks = navLinks; // Reuse navLinks for mobile
 
-const bottomNavLinks = [
-  { href: '/home', text: 'Home', icon: Home },
-  { href: '/explore', text: 'Explore', icon: Compass },
-  { href: '/favorites', text: 'Favorites', icon: Heart },
-  { href: '/profile', text: 'Profile', icon: User },
-  { href: '/about', text: 'About', icon: Info },
-];
-
-const generateRandomUsername = () => {
-  return 'user_' + Math.random().toString(36).substr(2, 8);
-};
-
-const user = ref({
-  name: 'Kurt Reserva',
-  username: generateRandomUsername(),
-  email: 'kurtreserva18@gmail.com',
-  avatar: '/kurty.png',
-  birthdate: '2003-10-05',
-  country: 'Phillipines',
-  region: 'Caraga',
-  booksBrowsed: 129,
-  favoriteBooks: 15,
-  readingList: [
-    { id: 1, title: 'To Kill a Mockingbird', author: 'Harper Lee', link: '#' },
-    { id: 2, title: '1984', author: 'George Orwell', link: '#' },
-    { id: 3, title: 'Pride and Prejudice', author: 'Jane Austen', link: '#' },
-  ],
-});
-
-const editedUser = ref({ ...user.value });
-
-const circumference = 2 * Math.PI * 30;
-const dashOffset = computed(() => {
-  return circumference - (user.value.booksBrowsed / 200) * circumference;
-});
-
-const favoriteDashOffset = computed(() => {
-  return circumference - (user.value.favoriteBooks / 50) * circumference;
-});
-
+// Dark mode toggle
 const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value;
   localStorage.setItem('darkMode', isDarkMode.value);
   document.documentElement.classList.toggle('dark', isDarkMode.value);
 };
 
+// Mobile menu toggle
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
 };
 
+// Open the edit modal and prefill form data
 const openEditModal = () => {
-  editedUser.value = { ...user.value };
+
   isEditModalOpen.value = true;
+  editedUser.value.username = user.value.username; // Prefill username
 };
 
+// Close the edit modal
 const closeEditModal = () => {
   isEditModalOpen.value = false;
 };
 
-const saveProfile = () => {
-  user.value.username = editedUser.value.username;
-  closeEditModal();
-};
-
-const handleAvatarUpload = (event) => {
-  const file = event.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      user.value.avatar = e.target.result;
+// Save profile changes
+const saveProfile = async () => {
+  try {
+    // Example: Update user profile in Supabase
+    const updates = {
+      username: editedUser.value.username,
     };
-    reader.readAsDataURL(file);
+
+    const { error } = await supabase.from('users_info').update(updates).eq('email', user.value.email);
+
+    if (error) throw error;
+
+    // Update local user data
+    user.value.username = editedUser.value.username;
+
+    closeEditModal();
+    alert('Profile updated successfully!');
+  } catch (error) {
+    console.error('Error saving profile:', error.message);
+    alert('Failed to update profile. Please try again.');
   }
 };
 
-const subscribeNewsletter = () => {
-  console.log('Subscribing to newsletter:', newsletterEmail.value);
-  newsletterEmail.value = '';
-};
+// Fetch user data from Google Auth and Supabase
+const fetchUserData = async () => {
+  try {
+    // Step 1: Get the authenticated user
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError) throw authError;
 
-const handleOutsideClick = (event) => {
-  if (isMobileMenuOpen.value && !event.target.closest('.mobile-menu')) {
-    isMobileMenuOpen.value = false;
+    if (!authData?.user) {
+      console.error('User not logged in');
+      return;
+    }
+
+    // Step 2: Extract Google profile metadata
+    const userMetadata = authData.user.user_metadata;
+    const googleProfile = {
+      firstname: userMetadata.full_name?.split(' ')[0] || 'Guest',
+      lastname: userMetadata.full_name?.split(' ')[1] || '',
+      username: userMetadata.username || '',
+      email: authData.user.email || '',
+      avatar_url: userMetadata.avatar_url || '',
+      birthday: userMetadata.birthday || '',
+    };
+
+    console.log('Google Profile Data:', googleProfile);
+
+    // Step 3: Set user data to the ref state
+    user.value = googleProfile;
+  } catch (error) {
+    console.error('Error fetching user data:', error.message);
+  } finally {
+    isLoading.value = false;
   }
 };
 
-onMounted(() => {
+// Lifecycle hook
+onMounted(async () => {
+  await fetchUserData();
   isDarkMode.value = localStorage.getItem('darkMode') === 'true';
   document.documentElement.classList.toggle('dark', isDarkMode.value);
 
-  // Simulate loading time
-  setTimeout(() => {
-    isLoading.value = false;
-  }, 2000); // 2 seconds loading time, adjust as needed
+
 });
 </script>
+
+
+
 
 <style scoped>
 .animate-float {

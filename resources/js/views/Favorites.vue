@@ -236,8 +236,13 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
-import { Moon, Sun, Trash2, Heart, Menu, BookOpen, Home, Compass, User, Facebook, Instagram, BookOpen as ReadingList, LogOut, Info } from 'lucide-vue-next';
+import { 
+  Moon, Sun, Trash2, Heart, Menu, BookOpen, Home, Compass, 
+  User, Facebook, Instagram, BookOpen as ReadingList, LogOut, Info 
+} from 'lucide-vue-next';
+import { supabase } from '../supabase';
 
+// Reactive variables
 const isDarkMode = ref(false);
 const isMobileMenuOpen = ref(false);
 const sortBy = ref('title');
@@ -247,6 +252,7 @@ const isLoading = ref(true);
 const showFavoriteAlert = ref(false);
 const favoriteAlertMessage = ref('');
 
+// Navigation Links
 const navLinks = [
   { to: '/home', text: 'Home', icon: Home },
   { to: '/explore', text: 'Explore', icon: Compass },
@@ -254,6 +260,7 @@ const navLinks = [
   { to: '/profile', text: 'Profile', icon: User },
   { to: '/about', text: 'About', icon: Info },
 ];
+
 const bottomNavLinks = [
   { href: '/home', text: 'Home', icon: Home },
   { href: '/explore', text: 'Explore', icon: Compass },
@@ -261,12 +268,14 @@ const bottomNavLinks = [
   { href: '/profile', text: 'Profile', icon: User },
   { href: '/about', text: 'About', icon: Info },
 ];
+
 const mobileNavLinks = [
   { href: '/reading-list', text: 'Reading List', icon: ReadingList },
   { href: '/logout', text: 'Logout', icon: LogOut },
   { href: '/about', text: 'About', icon: Info },
 ];
 
+// Books and Favorites
 const favorites = ref([]);
 const recommendedBooks = ref([
   { id: 5, title: 'The Catcher in the Rye', author: 'J.D. Salinger', cover: '/catch.jpg', price: '$6.99', isFree: false, link: '#' },
@@ -275,6 +284,15 @@ const recommendedBooks = ref([
   { id: 8, title: 'The Alchemist', author: 'Paulo Coelho', cover: '/alchemist.jpg', price: '$8.99', isFree: false, link: '#' },
 ]);
 
+// Computed Properties
+const filteredFavorites = computed(() => {
+  return favorites.value.filter(book =>
+    book.title?.toLowerCase().includes(filterText.value.toLowerCase()) ||
+    book.author?.toLowerCase().includes(filterText.value.toLowerCase())
+  );
+});
+
+// Methods
 const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value;
   localStorage.setItem('darkMode', isDarkMode.value);
@@ -285,58 +303,72 @@ const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
 };
 
-const filteredFavorites = computed(() => {
-  return favorites.value.filter(book => 
-    book.title.toLowerCase().includes(filterText.value.toLowerCase()) ||
-    book.author.toLowerCase().includes(filterText.value.toLowerCase())
-  );
-});
+const fetchFavorites = async () => {
+  try {
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError) throw new Error(authError.message);
 
-const sortFavorites = () => {
-  favorites.value.sort((a, b) => {
-    if (sortBy.value === 'title') return a.title.localeCompare(b.title);
-    if (sortBy.value === 'author') return a.author.localeCompare(b.author);
-    return new Date(b.dateAdded) - new Date(a.dateAdded);
-  });
-};
+    const userId = authData.user.id;
+    const { data: favoritesData, error: fetchError } = await supabase
+      .from('favorites_users')
+      .select(`
+        id,
+        favorites: favorites_id (
+          id,
+          book: favorites_book_id_fkey (
+            id,
+            title,
+            author,
+            price,
+            genre
+          )
+        )
+      `)
+      .eq('user_uuid', userId);
 
-const removeFromFavorites = (book) => {
-  favorites.value = favorites.value.filter(fav => fav.id !== book.id);
-  saveFavoritesToLocalStorage();
-  showFavoriteAlert.value = true;
-  favoriteAlertMessage.value = `${book.title} removed from favorites!`;
-  setTimeout(() => {
-    showFavoriteAlert.value = false;
-  }, 3000);
-};
+    if (fetchError) throw new Error(fetchError.message);
 
-const addToFavorites = (book) => {
-  if (!favorites.value.some(fav => fav.id === book.id)) {
-    favorites.value.push({ ...book, dateAdded: new Date() });
-    saveFavoritesToLocalStorage();
-    showFavoriteAlert.value = true;
-    favoriteAlertMessage.value = `${book.title} added to favorites!`;
-    setTimeout(() => {
-      showFavoriteAlert.value = false;
-    }, 3000);
+    favorites.value = favoritesData.map(fav => fav.favorites.book);
+  } catch (error) {
+    console.error('Error fetching user favorites:', error.message);
+    favorites.value = []; // Set empty array on error
   }
 };
 
-const saveFavoritesToLocalStorage = () => {
-  localStorage.setItem('favorites', JSON.stringify(favorites.value));
-};
+const removeFromFavorites = async (bookId) => {
+  try {
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError) throw new Error(authError.message);
 
-const loadFavoritesFromLocalStorage = () => {
-  const storedFavorites = localStorage.getItem('favorites');
-  if (storedFavorites) {
-    favorites.value = JSON.parse(storedFavorites);
+    const userId = authData.user.id;
+    const { data: favoritesData, error: fetchError } = await supabase
+      .from('favorites_users')
+      .select('id')
+      .eq('user_uuid', userId)
+      .eq('favorites_book_id_fkey', bookId)
+      .single();
+
+    if (fetchError) throw new Error(fetchError.message);
+
+    const favoriteId = favoritesData.id;
+    const { error: removeError } = await supabase
+      .from('favorites_users')
+      .delete()
+      .eq('id', favoriteId);
+
+    if (removeError) throw new Error(removeError.message);
+
+    favorites.value = favorites.value.filter(fav => fav.id !== bookId);
+    console.log(`Book ${bookId} removed from favorites.`);
+  } catch (error) {
+    console.error('Error removing from favorites:', error.message);
   }
 };
 
 const subscribeNewsletter = () => {
-  // Implement newsletter subscription logic here
+
   console.log('Subscribing to newsletter:', newsletterEmail.value);
-  newsletterEmail.value = ''; // Clear the input after submission
+  newsletterEmail.value = ''; // Reset after subscription
 };
 
 const handleOutsideClick = (event) => {
@@ -351,23 +383,27 @@ const handleScroll = () => {
   }
 };
 
+// Lifecycle Hooks
 onMounted(() => {
   isDarkMode.value = localStorage.getItem('darkMode') === 'true';
   document.documentElement.classList.toggle('dark', isDarkMode.value);
-  loadFavoritesFromLocalStorage();
+  fetchFavorites(); // Fetch user favorites when component is mounted
   window.addEventListener('scroll', handleScroll);
-  
-  // Simulate loading time
+
+
   setTimeout(() => {
     isLoading.value = false;
-  }, 2000); // 2 seconds loading time, adjust as needed
+  }, 2000);
 });
 
+// Watchers
 watch(favorites, () => {
-  sortFavorites();
+  sortFavorites(); // You can define this method for sorting if needed
 }, { deep: true });
 
 </script>
+
+
 
 <style scoped>
 .slide-fade-enter-active,

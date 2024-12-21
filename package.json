@@ -6,6 +6,7 @@
         "build": "vite build"
     },
     "devDependencies": {
+        "@vitejs/plugin-vue-jsx": "^4.1.1",
         "autoprefixer": "^10.4.20",
         "axios": "^1.7.4",
         "laravel-vite-plugin": "^1.0",
@@ -15,7 +16,7 @@
     },
     "dependencies": {
         "@heroicons/vue": "^2.1.5",
-        "@supabase/supabase-js": "^2.46.2",
+        "@supabase/supabase-js": "^2.47.9",
         "@vitejs/plugin-vue": "^5.1.4",
         "ldrs": "^1.0.2",
         "lottie-web": "^5.12.2",
